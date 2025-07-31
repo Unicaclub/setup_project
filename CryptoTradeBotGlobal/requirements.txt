@@ -1,0 +1,75 @@
+# Core Trading Dependencies
+ccxt==4.2.25                    # Cryptocurrency exchange trading library
+pandas==2.2.0                   # Data manipulation and analysis
+numpy==1.26.3                   # Numerical computing
+scipy==1.12.0                   # Scientific computing
+
+# Technical Analysis
+ta-lib==0.4.28                  # Technical Analysis Library
+pandas-ta==0.3.14b              # Pandas Technical Analysis
+
+# Machine Learning
+scikit-learn==1.4.0             # Machine learning library
+tensorflow==2.15.0              # Deep learning framework
+torch==2.1.2                    # PyTorch for ML models
+xgboost==2.0.3                  # Gradient boosting framework
+
+# Async Programming
+asyncio==3.4.3                  # Asynchronous I/O
+aiohttp==3.9.1                  # Async HTTP client/server
+websockets==12.0                # WebSocket client and server
+
+# Database
+sqlalchemy==2.0.25              # SQL toolkit and ORM
+alembic==1.13.1                 # Database migration tool
+redis==5.0.1                    # Redis client
+psycopg2-binary==2.9.9          # PostgreSQL adapter
+
+# Configuration Management
+python-dotenv==1.0.0            # Load environment variables
+pydantic==2.5.3                 # Data validation using Python type hints
+pydantic-settings==2.1.0        # Settings management with Pydantic
+PyYAML==6.0.1                   # YAML parser and emitter
+
+# Logging and Monitoring
+structlog==23.2.0               # Structured logging
+prometheus-client==0.19.0       # Prometheus metrics client
+sentry-sdk==1.40.0              # Error tracking and performance monitoring
+
+# Security
+cryptography==42.0.0            # Cryptographic recipes and primitives
+bcrypt==4.1.2                   # Password hashing
+PyJWT==2.8.0                    # JSON Web Token implementation
+
+# API and Web Framework
+fastapi==0.108.0                # Modern web framework for APIs
+uvicorn==0.25.0                 # ASGI server implementation
+starlette==0.32.0               # Lightweight ASGI framework
+
+# Testing
+pytest==7.4.4                   # Testing framework
+pytest-asyncio==0.23.2          # Async testing support
+pytest-cov==4.1.0               # Coverage plugin for pytest
+pytest-mock==3.12.0             # Mock plugin for pytest
+httpx==0.26.0                   # HTTP client for testing
+
+# Development Tools
+black==23.12.1                  # Code formatter
+flake8==7.0.0                   # Code linter
+mypy==1.8.0                     # Static type checker
+pre-commit==3.6.0               # Git hooks framework
+
+# Utilities
+click==8.1.7                    # Command line interface creation
+rich==13.7.0                    # Rich text and beautiful formatting
+schedule==1.2.1                 # Job scheduling library
+python-dateutil==2.8.2          # Extensions to the standard datetime module
+pytz==2023.3                    # World timezone definitions
+
+# Performance
+numba==0.59.0                   # JIT compiler for numerical functions
+cython==3.0.7                   # C extensions for Python
+
+# Deployment
+docker==7.0.0                   # Docker SDK for Python
+kubernetes==28.1.0              # Kubernetes client library
