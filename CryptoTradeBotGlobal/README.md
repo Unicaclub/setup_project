@@ -1,334 +1,287 @@
-# 🚀 CryptoTradeBotGlobal
+# 🤖 CryptoTradeBotGlobal
 
-**Enterprise-Grade Cryptocurrency Trading System**
+**Sistema Completo de Trading de Criptomoedas em Português Brasileiro**
 
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Code Style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![Security: Bandit](https://img.shields.io/badge/security-bandit-green.svg)](https://github.com/PyCQA/bandit)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Licença: MIT](https://img.shields.io/badge/Licença-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Código: Black](https://img.shields.io/badge/código-black-000000.svg)](https://github.com/psf/black)
 
-A production-ready, multi-exchange cryptocurrency trading bot with advanced risk management, machine learning strategies, and enterprise-grade architecture.
+Sistema de trading de criptomoedas pronto para produção com gerenciamento avançado de risco, arquitetura empresarial e suporte a múltiplos exchanges.
 
-## 🎯 Key Features
+## 🎯 Características Principais
 
-### 🏗️ **Enterprise Architecture**
-- **Modular Design**: Clean separation of concerns with adapter pattern
-- **Async/Await**: High-performance asynchronous operations
-- **Event-Driven**: Real-time event bus for system communication
-- **Microservices Ready**: Docker and Kubernetes deployment support
-- **Scalable**: Horizontal scaling with Redis clustering
+### 🏗️ **Arquitetura Empresarial**
+- **Design Modular**: Separação clara de responsabilidades com padrão adapter
+- **Async/Await**: Operações assíncronas de alta performance
+- **Orientado a Eventos**: Bus de eventos em tempo real para comunicação do sistema
+- **Pronto para Microserviços**: Suporte a deployment com Docker e Kubernetes
+- **Escalável**: Escalabilidade horizontal com clustering Redis
 
-### 📈 **Advanced Trading Strategies**
-- **Technical Analysis**: RSI, MACD, Bollinger Bands, Moving Averages
-- **Mean Reversion**: Statistical arbitrage and pair trading
-- **Trend Following**: Momentum-based strategies with confirmation
-- **Breakout Trading**: Support/resistance level breakouts
-- **Arbitrage**: Inter-exchange price difference exploitation
-- **Machine Learning**: LSTM, Random Forest, XGBoost ensemble models
+### 📈 **Estratégias de Trading Avançadas**
+- **Análise Técnica**: RSI, MACD, Bandas de Bollinger, Médias Móveis
+- **Reversão à Média**: Arbitragem estatística e pair trading
+- **Seguimento de Tendência**: Estratégias baseadas em momentum
+- **Trading de Rompimento**: Rompimentos de níveis de suporte/resistência
+- **Arbitragem**: Exploração de diferenças de preço entre exchanges
+- **Machine Learning**: Modelos ensemble LSTM, Random Forest, XGBoost
 
-### 🛡️ **Enterprise Risk Management**
-- **Portfolio Risk Controls**: Drawdown limits, position sizing, diversification
-- **Real-time Monitoring**: VaR, CVaR, Sharpe ratio calculations
-- **Circuit Breakers**: Automatic trading halt on excessive losses
-- **Emergency Procedures**: Fail-safe mechanisms and recovery protocols
-- **Compliance**: Audit trails and regulatory reporting
+### 🛡️ **Gerenciamento de Risco Empresarial**
+- **Controles de Risco de Portfólio**: Limites de drawdown, dimensionamento de posição
+- **Monitoramento em Tempo Real**: Cálculos de VaR, CVaR, índice Sharpe
+- **Circuit Breakers**: Parada automática de trading em perdas excessivas
+- **Procedimentos de Emergência**: Mecanismos fail-safe e protocolos de recuperação
 
-### 🔗 **Multi-Exchange Support**
-- **Binance**: Spot and futures trading
-- **Coinbase Pro**: Professional trading interface
-- **Kraken**: European market access
-- **OKX**: Global derivatives platform
-- **Extensible**: Easy addition of new exchanges
+### 🔗 **Suporte Multi-Exchange**
+- **Binance**: Trading spot e futuros
+- **Coinbase Pro**: Interface de trading profissional
+- **Kraken**: Acesso ao mercado europeu
+- **Extensível**: Fácil adição de novos exchanges
 
-### 🔐 **Security & Compliance**
-- **API Key Encryption**: Military-grade encryption for credentials
-- **Rate Limiting**: Exchange-specific rate limit management
-- **Audit Logging**: Complete transaction and decision audit trail
-- **Access Control**: Role-based permissions and authentication
-- **Data Protection**: GDPR-compliant data handling
+## 🚀 Início Rápido
 
-## 🚀 Quick Start
+### Pré-requisitos
 
-### Prerequisites
+- Python 3.8 ou superior
+- PostgreSQL 12+ (para produção)
+- Redis 6+ (para cache e pub/sub)
+- Docker & Docker Compose (opcional)
 
-- Python 3.9 or higher
-- PostgreSQL 12+ (for production)
-- Redis 6+ (for caching and pub/sub)
-- Docker & Docker Compose (optional)
+### Instalação
 
-### Installation
-
-1. **Clone the Repository**
+1. **Clonar o Repositório**
 ```bash
 git clone https://github.com/Unicaclub/setup_project.git
 cd setup_project/CryptoTradeBotGlobal
 ```
 
-2. **Create Virtual Environment**
+2. **Criar Ambiente Virtual**
 ```bash
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+source venv/bin/activate  # No Windows: venv\Scripts\activate
 ```
 
-3. **Install Dependencies**
+3. **Instalar Dependências**
 ```bash
 pip install -r requirements.txt
 ```
 
-4. **Configure Environment**
+4. **Configurar Ambiente**
 ```bash
 cp .env.example .env
-# Edit .env with your configuration
+# Edite o arquivo .env com suas configurações
 ```
 
-5. **Initialize Database**
-```bash
-python scripts/init_database.py
-```
-
-6. **Run the Bot**
+5. **Executar o Sistema**
 ```bash
 python main.py
 ```
 
-### Docker Deployment
+### Deployment com Docker
 
 ```bash
-# Build and run with Docker Compose
+# Construir e executar com Docker Compose
 docker-compose up -d
 
-# Scale services
+# Escalar serviços
 docker-compose up -d --scale trading-engine=3
 ```
 
-## 📊 Configuration
+## 📊 Configuração
 
-### Environment Variables
+### Variáveis de Ambiente
 
-The system uses environment variables for configuration. Copy `.env.example` to `.env` and configure:
+O sistema usa variáveis de ambiente para configuração. Copie `.env.example` para `.env` e configure:
 
 ```bash
-# Trading Configuration
-TRADING_MODE=paper  # paper, live, backtest
+# Configuração de Trading
+TRADING_MODE=simulacao  # simulacao, real, backtest
 TRADING_BASE_CURRENCY=USDT
 TRADING_MAX_POSITION_SIZE=1000.0
 
-# Exchange API Keys (keep secure!)
-BINANCE_API_KEY=your_api_key_here
-BINANCE_SECRET_KEY=your_secret_key_here
+# Chaves de API dos Exchanges (mantenha seguro!)
+BINANCE_API_KEY=sua_chave_api_aqui
+BINANCE_SECRET_KEY=sua_chave_secreta_aqui
 
-# Risk Management
+# Gerenciamento de Risco
 TRADING_MAX_DAILY_LOSS=500.0
 TRADING_MAX_DRAWDOWN=0.15
 ```
 
-### Strategy Configuration
+### Configuração de Estratégias
 
-Strategies are configured in `config/strategies.yaml`:
+As estratégias são configuradas em `config/strategies.yaml`:
 
 ```yaml
-strategies:
-  trend_following:
-    enabled: true
-    parameters:
-      fast_ma_period: 12
-      slow_ma_period: 26
+estrategias:
+  seguimento_tendencia:
+    ativo: true
+    parametros:
+      periodo_ma_rapida: 12
+      periodo_ma_lenta: 26
       stop_loss_pct: 0.03
-    risk_management:
-      max_position_size: 1000.0
-      risk_per_trade: 0.02
+    gerenciamento_risco:
+      tamanho_max_posicao: 1000.0
+      risco_por_trade: 0.02
 ```
 
-### Risk Management
+### Gerenciamento de Risco
 
-Risk parameters are defined in `config/risk_management.yaml`:
+Os parâmetros de risco são definidos em `config/risk_management.yaml`:
 
 ```yaml
-portfolio_risk:
-  max_portfolio_risk: 0.10
-  max_daily_loss: 0.05
-  max_drawdown: 0.20
+risco_portfolio:
+  risco_max_portfolio: 0.10
+  perda_max_diaria: 0.05
+  drawdown_maximo: 0.20
 ```
 
-## 🏗️ Architecture
+## 🏗️ Arquitetura
 
-### System Components
+### Componentes do Sistema
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Trading       │    │   Strategy      │    │   Risk          │
-│   Engine        │◄──►│   Manager       │◄──►│   Manager       │
+│   Motor de      │    │   Gerenciador   │    │   Gerenciador   │
+│   Trading       │◄──►│   Estratégias   │◄──►│   de Risco      │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
          │                       │                       │
          ▼                       ▼                       ▼
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Exchange      │    │   Data          │    │   Portfolio     │
-│   Adapters      │    │   Manager       │    │   Manager       │
+│   Adaptadores   │    │   Gerenciador   │    │   Gerenciador   │
+│   Exchange      │    │   de Dados      │    │   Portfolio     │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
          │                       │                       │
          ▼                       ▼                       ▼
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Event Bus     │◄──►│   State         │◄──►│   Health        │
-│                 │    │   Manager       │    │   Monitor       │
+│   Bus de        │◄──►│   Gerenciador   │◄──►│   Monitor de    │
+│   Eventos       │    │   de Estado     │    │   Saúde         │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
-### Directory Structure
+### Estrutura de Diretórios
 
 ```
 CryptoTradeBotGlobal/
 ├── src/
-│   ├── core/                 # Core system components
-│   │   ├── trading_engine.py # Main trading orchestration
-│   │   ├── event_bus.py      # Event-driven communication
-│   │   ├── state_manager.py  # System state management
-│   │   └── health_monitor.py # System health monitoring
-│   ├── adapters/             # Exchange adapters
-│   │   └── exchanges/        # Exchange-specific implementations
-│   ├── strategies/           # Trading strategies
-│   │   ├── technical/        # Technical analysis strategies
-│   │   ├── arbitrage/        # Arbitrage strategies
-│   │   └── ml_strategies/    # Machine learning strategies
-│   └── utils/                # Utility functions
-├── config/                   # Configuration files
-│   ├── settings.py          # Main configuration
-│   ├── exchanges.yaml       # Exchange settings
-│   ├── strategies.yaml      # Strategy parameters
-│   └── risk_management.yaml # Risk management rules
-├── tests/                   # Test suite
-├── docs/                    # Documentation
-├── scripts/                 # Utility scripts
-├── data/                    # Data storage
-└── logs/                    # Log files
+│   ├── core/                 # Componentes principais do sistema
+│   │   ├── bot_trading.py    # Bot principal de trading
+│   │   ├── event_bus.py      # Comunicação orientada a eventos
+│   │   ├── state_manager.py  # Gerenciamento de estado
+│   │   └── health_monitor.py # Monitoramento de saúde
+│   ├── adapters/             # Adaptadores de exchange
+│   │   └── exchanges/        # Implementações específicas
+│   ├── strategies/           # Estratégias de trading
+│   │   ├── technical/        # Estratégias de análise técnica
+│   │   ├── arbitrage/        # Estratégias de arbitragem
+│   │   └── ml_strategies/    # Estratégias de machine learning
+│   └── utils/                # Funções utilitárias
+├── config/                   # Arquivos de configuração
+│   ├── settings.py          # Configuração principal
+│   ├── exchanges.yaml       # Configurações de exchanges
+│   ├── strategies.yaml      # Parâmetros de estratégias
+│   └── risk_management.yaml # Regras de gerenciamento de risco
+├── tests/                   # Suíte de testes
+├── docs/                    # Documentação
+├── data/                    # Armazenamento de dados
+└── logs/                    # Arquivos de log
 ```
 
-## 📈 Trading Strategies
+## 📈 Estratégias de Trading
 
-### Technical Analysis Strategies
+### Estratégias de Análise Técnica
 
-#### Trend Following
-- **Moving Average Crossover**: EMA 12/26 with signal confirmation
-- **MACD Strategy**: MACD line and signal line crossovers
-- **Momentum Trading**: RSI and price momentum indicators
+#### Seguimento de Tendência
+- **Cruzamento de Médias Móveis**: EMA 12/26 com confirmação de sinal
+- **Estratégia MACD**: Cruzamentos de linha MACD e linha de sinal
+- **Trading de Momentum**: Indicadores RSI e momentum de preço
 
-#### Mean Reversion
-- **Bollinger Bands**: Price reversion to mean with volatility bands
-- **RSI Oversold/Overbought**: Contrarian signals at extreme levels
-- **Statistical Arbitrage**: Pair trading with correlation analysis
+#### Reversão à Média
+- **Bandas de Bollinger**: Reversão de preço à média com bandas de volatilidade
+- **RSI Sobrevendido/Sobrecomprado**: Sinais contrários em níveis extremos
+- **Arbitragem Estatística**: Pair trading com análise de correlação
 
-#### Breakout Trading
-- **Support/Resistance Breakouts**: Level-based entry signals
-- **Volume Confirmation**: High volume breakout validation
-- **False Breakout Protection**: Multiple confirmation filters
+### Estratégias de Machine Learning
 
-### Machine Learning Strategies
+#### Redes Neurais LSTM
+- **Predição de Preços**: Previsão de séries temporais com LSTM
+- **Engenharia de Features**: Indicadores técnicos e dados de mercado
+- **Métodos Ensemble**: Combinação de múltiplos modelos
 
-#### LSTM Neural Networks
-- **Price Prediction**: Time series forecasting with LSTM
-- **Feature Engineering**: Technical indicators and market data
-- **Ensemble Methods**: Multiple model combination
+## 🛡️ Gerenciamento de Risco
 
-#### Random Forest & XGBoost
-- **Classification Models**: Buy/sell/hold signal prediction
-- **Feature Importance**: Automated feature selection
-- **Cross-Validation**: Robust model validation
+### Controles de Risco de Portfólio
 
-## 🛡️ Risk Management
+- **Dimensionamento de Posição**: Critério de Kelly, percentual fixo, ajustado por volatilidade
+- **Diversificação**: Limites máximos de correlação e concentração
+- **Proteção de Drawdown**: Redução dinâmica de posição em perdas
+- **Gerenciamento de Stop Loss**: Stops móveis e tomada de lucro
 
-### Portfolio Risk Controls
+### Monitoramento em Tempo Real
 
-- **Position Sizing**: Kelly Criterion, fixed percentage, volatility-adjusted
-- **Diversification**: Maximum correlation and concentration limits
-- **Drawdown Protection**: Dynamic position reduction on losses
-- **Stop Loss Management**: Trailing stops and profit taking
+- **Value at Risk (VaR)**: Medição de risco com 95% de confiança
+- **VaR Condicional**: Cálculo de shortfall esperado
+- **Índice Sharpe**: Monitoramento de retorno ajustado ao risco
+- **Drawdown Máximo**: Rastreamento de perda pico-vale
 
-### Real-time Monitoring
+## 🔧 Desenvolvimento
 
-- **Value at Risk (VaR)**: 95% confidence level risk measurement
-- **Conditional VaR**: Expected shortfall calculation
-- **Sharpe Ratio**: Risk-adjusted return monitoring
-- **Maximum Drawdown**: Peak-to-trough loss tracking
+### Configurando Ambiente de Desenvolvimento
 
-### Emergency Procedures
-
-- **Circuit Breakers**: Automatic trading halt on excessive losses
-- **Emergency Shutdown**: Complete system shutdown capability
-- **Position Liquidation**: Rapid position closure procedures
-- **Manual Override**: Human intervention capabilities
-
-## 🔧 Development
-
-### Setting Up Development Environment
-
-1. **Install Development Dependencies**
+1. **Instalar Dependências de Desenvolvimento**
 ```bash
-pip install -r requirements-dev.txt
+pip install pytest pytest-asyncio
 ```
 
-2. **Install Pre-commit Hooks**
+2. **Executar Testes**
 ```bash
-pre-commit install
+pytest tests/ -v
 ```
 
-3. **Run Tests**
+3. **Executar Testes Básicos**
 ```bash
-pytest tests/ -v --cov=src/
+python tests/test_basico.py
 ```
 
-4. **Code Formatting**
-```bash
-black src/ tests/
-flake8 src/ tests/
-mypy src/
-```
+### Adicionando Novos Exchanges
 
-### Adding New Exchanges
+1. Criar adaptador de exchange em `src/adapters/exchanges/`
+2. Implementar interface `BaseExchange`
+3. Adicionar configuração em `config/exchanges.yaml`
+4. Adicionar testes em `tests/adapters/exchanges/`
 
-1. Create exchange adapter in `src/adapters/exchanges/`
-2. Implement `BaseExchange` interface
-3. Add configuration in `config/exchanges.yaml`
-4. Add tests in `tests/adapters/exchanges/`
+### Adicionando Novas Estratégias
 
-### Adding New Strategies
+1. Criar classe de estratégia herdando de `BaseStrategy`
+2. Implementar métodos obrigatórios: `analyze()`, `generate_signal()`, `calculate_risk()`
+3. Adicionar configuração em `config/strategies.yaml`
+4. Adicionar testes abrangentes
 
-1. Create strategy class inheriting from `BaseStrategy`
-2. Implement required methods: `analyze()`, `generate_signal()`, `calculate_risk()`
-3. Add configuration in `config/strategies.yaml`
-4. Add comprehensive tests
+## 📊 Monitoramento e Observabilidade
 
-## 📊 Monitoring & Observability
+### Métricas e Monitoramento
 
-### Metrics & Monitoring
-
-- **Prometheus Metrics**: System and trading metrics
-- **Grafana Dashboards**: Real-time visualization
-- **Health Checks**: Endpoint monitoring
-- **Performance Tracking**: Latency and throughput metrics
+- **Métricas Prometheus**: Métricas de sistema e trading
+- **Dashboards Grafana**: Visualização em tempo real
+- **Health Checks**: Monitoramento de endpoints
+- **Rastreamento de Performance**: Métricas de latência e throughput
 
 ### Logging
 
-- **Structured Logging**: JSON-formatted logs with context
-- **Log Levels**: DEBUG, INFO, WARNING, ERROR, CRITICAL
-- **Audit Trail**: Complete trading decision logging
-- **Log Rotation**: Automatic log file management
-
-### Alerting
-
-- **Email Alerts**: Critical system notifications
-- **Slack Integration**: Team communication
-- **Telegram Bot**: Mobile notifications
-- **Webhook Support**: Custom alert endpoints
+- **Logging Estruturado**: Logs formatados em JSON com contexto
+- **Níveis de Log**: DEBUG, INFO, WARNING, ERROR, CRITICAL
+- **Trilha de Auditoria**: Log completo de decisões de trading
+- **Rotação de Logs**: Gerenciamento automático de arquivos de log
 
 ## 🚀 Deployment
 
-### Production Deployment
+### Deployment de Produção
 
-#### Docker Deployment
+#### Deployment Docker
 ```bash
-# Build production image
+# Construir imagem de produção
 docker build -t cryptobot:latest .
 
-# Run with production configuration
+# Executar com configuração de produção
 docker run -d --name cryptobot \
   --env-file .env.production \
   -v $(pwd)/data:/app/data \
@@ -336,133 +289,148 @@ docker run -d --name cryptobot \
   cryptobot:latest
 ```
 
-#### Kubernetes Deployment
-```bash
-# Deploy to Kubernetes
-kubectl apply -f k8s/
+### Configurações Específicas por Ambiente
 
-# Scale deployment
-kubectl scale deployment cryptobot --replicas=3
-```
+#### Desenvolvimento
+- Paper trading habilitado
+- Logging de debug
+- Banco de dados local
+- Tamanhos de posição reduzidos
 
-### Environment-Specific Configurations
+#### Produção
+- Trading ao vivo habilitado
+- Performance otimizada
+- Configuração de alta disponibilidade
+- Monitoramento abrangente
 
-#### Development
-- Paper trading enabled
-- Debug logging
-- Local database
-- Reduced position sizes
+## 🔐 Segurança
 
-#### Staging
-- Paper trading with real data
-- Production-like configuration
-- Performance testing
-- Integration testing
+### Gerenciamento de Chaves de API
 
-#### Production
-- Live trading enabled
-- Optimized performance
-- High availability setup
-- Comprehensive monitoring
+- **Criptografia**: Criptografia AES-256 para chaves armazenadas
+- **Variáveis de Ambiente**: Gerenciamento seguro de configuração
+- **Rotação de Chaves**: Rotação automática de chaves de API
+- **Controle de Acesso**: Acesso baseado em funções para operações sensíveis
 
-## 🔐 Security
+### Auditoria e Conformidade
 
-### API Key Management
+- **Log de Transações**: Trilha de auditoria completa
+- **Retenção de Dados**: Políticas de retenção configuráveis
+- **Relatórios de Conformidade**: Geração de relatórios regulatórios
+- **Log de Acesso**: Monitoramento de atividade do usuário
 
-- **Encryption**: AES-256 encryption for stored API keys
-- **Environment Variables**: Secure configuration management
-- **Key Rotation**: Automated API key rotation
-- **Access Control**: Role-based access to sensitive operations
+## 📚 Documentação
 
-### Network Security
+### Documentação da API
 
-- **TLS/SSL**: Encrypted communication with exchanges
-- **IP Whitelisting**: Restricted API access
-- **Rate Limiting**: DDoS protection
-- **Firewall Rules**: Network-level security
+- **Documentação FastAPI**: Documentação de API auto-gerada
+- **Especificação OpenAPI**: Especificação de API legível por máquina
 
-### Audit & Compliance
+### Guias do Usuário
 
-- **Transaction Logging**: Complete audit trail
-- **Data Retention**: Configurable retention policies
-- **Compliance Reporting**: Regulatory report generation
-- **Access Logging**: User activity monitoring
+- **Primeiros Passos**: Guia de configuração rápida
+- **Configuração**: Opções de configuração detalhadas
+- **Desenvolvimento de Estratégias**: Criação de estratégias personalizadas
+- **Solução de Problemas**: Problemas comuns e soluções
 
-## 📚 Documentation
+## 🤝 Contribuindo
 
-### API Documentation
+Contribuições são bem-vindas! Por favor, veja nosso [Guia de Contribuição](CONTRIBUTING.md) para detalhes.
 
-- **FastAPI Docs**: Auto-generated API documentation
-- **OpenAPI Spec**: Machine-readable API specification
-- **Postman Collection**: API testing collection
+### Fluxo de Desenvolvimento
 
-### User Guides
+1. Faça fork do repositório
+2. Crie uma branch de feature
+3. Faça suas alterações
+4. Adicione testes
+5. Execute a suíte de testes
+6. Submeta um pull request
 
-- **Getting Started**: Quick setup guide
-- **Configuration**: Detailed configuration options
-- **Strategy Development**: Custom strategy creation
-- **Troubleshooting**: Common issues and solutions
+## 📄 Licença
 
-## 🤝 Contributing
+Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+## ⚠️ Aviso Legal
 
-### Development Workflow
+**IMPORTANTE**: Este software é para fins educacionais e de pesquisa. O trading de criptomoedas envolve risco substancial de perda. Performance passada não garante resultados futuros. Sempre:
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests
-5. Run the test suite
-6. Submit a pull request
+- Comece com paper trading
+- Nunca invista mais do que pode perder
+- Entenda os riscos envolvidos
+- Cumpra as regulamentações locais
+- Procure aconselhamento financeiro profissional
 
-### Code Standards
+## 🆘 Suporte
 
-- **PEP 8**: Python code style guide
-- **Type Hints**: Full type annotation
-- **Docstrings**: Comprehensive documentation
-- **Test Coverage**: Minimum 85% coverage
+### Obtendo Ajuda
 
-## 📄 License
+- **Documentação**: Consulte nossa documentação abrangente
+- **Issues**: Reporte bugs no GitHub Issues
+- **Discussões**: Participe das GitHub Discussions
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+### Suporte Profissional
 
-## ⚠️ Disclaimer
-
-**IMPORTANT**: This software is for educational and research purposes. Cryptocurrency trading involves substantial risk of loss. Past performance does not guarantee future results. Always:
-
-- Start with paper trading
-- Never invest more than you can afford to lose
-- Understand the risks involved
-- Comply with local regulations
-- Seek professional financial advice
-
-## 🆘 Support
-
-### Getting Help
-
-- **Documentation**: Check our comprehensive docs
-- **Issues**: Report bugs on GitHub Issues
-- **Discussions**: Join our GitHub Discussions
-- **Discord**: Join our community Discord server
-
-### Professional Support
-
-For enterprise support, custom development, or consulting services, contact us at:
-- Email: support@cryptotradebotglobal.com
+Para suporte empresarial, desenvolvimento personalizado ou serviços de consultoria, entre em contato:
+- Email: suporte@cryptotradebotglobal.com
 - Website: https://cryptotradebotglobal.com
 
-## 🙏 Acknowledgments
+## 🙏 Agradecimentos
 
-- **CCXT Library**: Cryptocurrency exchange integration
-- **TA-Lib**: Technical analysis indicators
-- **FastAPI**: Modern web framework
-- **PostgreSQL**: Reliable database system
-- **Redis**: High-performance caching
-- **Docker**: Containerization platform
+- **Biblioteca CCXT**: Integração com exchanges de criptomoedas
+- **FastAPI**: Framework web moderno
+- **PostgreSQL**: Sistema de banco de dados confiável
+- **Redis**: Cache de alta performance
+- **Docker**: Plataforma de containerização
 
 ---
 
-**Built with ❤️ by the CryptoTradeBotGlobal Team**
+**Construído com ❤️ pela Equipe CryptoTradeBotGlobal**
 
-*Making cryptocurrency trading accessible, safe, and profitable for everyone.*
+*Tornando o trading de criptomoedas acessível, seguro e lucrativo para todos.*
+
+## 🚀 Como Executar
+
+### Execução Básica
+
+```bash
+# Executar o sistema principal
+python main.py
+
+# Executar testes
+python tests/test_basico.py
+
+# Executar com pytest
+pytest tests/ -v
+```
+
+### Configuração Rápida
+
+1. **Configure as chaves de API no arquivo `.env`**:
+```bash
+# Exemplo de configuração mínima
+BINANCE_API_KEY=sua_chave_binance
+BINANCE_API_SECRET=sua_chave_secreta_binance
+BINANCE_TESTNET=true
+```
+
+2. **Execute o sistema**:
+```bash
+python main.py
+```
+
+3. **Monitore os logs**:
+```bash
+tail -f logs/trading.log
+```
+
+### Recursos Implementados
+
+✅ **Sistema de Configuração Completo**
+✅ **Gerenciamento de Risco Avançado**
+✅ **Adaptadores de Exchange (Simulados)**
+✅ **Sistema de Logging Profissional**
+✅ **Bot de Trading Principal**
+✅ **Suíte de Testes Abrangente**
+✅ **Documentação Completa**
+
+**SISTEMA INICIALIZADO COM SUCESSO - PROJETO FUNCIONAL**
