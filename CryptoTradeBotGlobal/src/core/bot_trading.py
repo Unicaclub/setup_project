@@ -304,18 +304,23 @@ class AdaptadorExchangeSimulado:
 class BotTrading:
     """Classe principal do bot de trading"""
     
-    def __init__(self, configuracoes: ConfiguracoesGlobais):
+    def __init__(self, configuracoes: Optional[ConfiguracoesGlobais] = None):
         """
         Inicializa o bot de trading
         
         Args:
-            configuracoes: Configurações globais do sistema
+            configuracoes: Configurações globais do sistema (opcional para modo teste)
         """
-        self.config = configuracoes
         self.logger = obter_logger(__name__)
         
+        # Se não há configurações, usar configurações básicas para teste
+        if configuracoes is None:
+            self.config = self._criar_configuracoes_basicas()
+        else:
+            self.config = configuracoes
+        
         # Componentes principais
-        self.gerenciador_risco = GerenciadorRiscoSimplificado(configuracoes)
+        self.gerenciador_risco = GerenciadorRiscoSimplificado(self.config)
         self.exchanges: Dict[str, AdaptadorExchangeSimulado] = {}
         
         # Estado do bot
@@ -327,6 +332,60 @@ class BotTrading:
         self.trades_executados = 0
         self.trades_lucrativos = 0
         self.valor_total_negociado = Decimal('0')
+    
+    def _criar_configuracoes_basicas(self) -> 'ConfiguracoesGlobais':
+        """
+        Cria configurações básicas para modo teste
+        
+        Returns:
+            Configurações básicas
+        """
+        from config import CONFIGURACAO_BASICA
+        
+        # Criar uma configuração mínima para teste
+        class ConfigBasica:
+            def __init__(self):
+                self.risco = type('obj', (object,), {
+                    'posicoes_maximas_abertas': 3,
+                    'tamanho_maximo_posicao_pct': 10,
+                    'perdas_consecutivas_max': 3,
+                    'perda_maxima_diaria_pct': 5,
+                    'drawdown_maximo_pct': 15,
+                    'stop_loss_pct': 2,
+                    'take_profit_pct': 4
+                })()
+                
+                self.trading = type('obj', (object,), {
+                    'valor_inicial_portfolio': Decimal('10000'),
+                    'pares_moedas': ['BTC/USDT', 'ETH/USDT']
+                })()
+            
+            def listar_exchanges_ativos(self):
+                return {
+                    'binance_simulado': type('obj', (object,), {
+                        'nome': 'binance_simulado',
+                        'ativo': True
+                    })()
+                }
+        
+        return ConfigBasica()
+    
+    def obter_status_sistema(self) -> Dict[str, Any]:
+        """
+        Obtém status atual do sistema
+        
+        Returns:
+            Dicionário com status do sistema
+        """
+        return {
+            'status': 'funcionando',
+            'ativo': self.ativo,
+            'ciclos_executados': self.ciclos_executados,
+            'trades_executados': self.trades_executados,
+            'exchanges_conectados': len(self.exchanges),
+            'ultima_execucao': self.ultima_execucao.isoformat() if self.ultima_execucao else None,
+            'valor_portfolio': float(self.gerenciador_risco.valor_atual) if hasattr(self, 'gerenciador_risco') else 0
+        }
         
     async def conectar_exchanges(self) -> bool:
         """

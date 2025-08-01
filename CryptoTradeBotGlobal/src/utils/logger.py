@@ -199,6 +199,24 @@ def configurar_loggers_especificos(nivel: int):
         logger_modulo.setLevel(nivel_modulo)
 
 
+def setup_logger(nome: str, nivel: str = 'INFO') -> logging.Logger:
+    """
+    Função simplificada para configurar um logger específico
+    
+    Args:
+        nome: Nome do logger
+        nivel: Nível de logging
+        
+    Returns:
+        Logger configurado
+    """
+    # Se o sistema de logging ainda não foi configurado, configurar
+    if not logging.getLogger().handlers:
+        configurar_logger(nivel=nivel)
+    
+    return logging.getLogger(nome)
+
+
 def obter_logger(nome: str) -> logging.Logger:
     """
     Obtém um logger específico para um módulo

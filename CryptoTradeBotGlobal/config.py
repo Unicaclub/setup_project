@@ -306,6 +306,26 @@ def exibir_resumo_configuracoes(config: ConfiguracoesGlobais):
     print("=" * 60)
 
 
+# Configuração básica para modo teste
+CONFIGURACAO_BASICA = {
+    'nome_sistema': 'CryptoTradeBotGlobal',
+    'versao': '1.0.0',
+    'autor': 'CryptoTradeBotGlobal Team',
+    'descricao': 'Sistema de Trading de Criptomoedas em Português Brasileiro',
+    'ambiente': 'desenvolvimento',
+    'modo_debug': True,
+    'suporte_simulacao': True,
+    'exchanges_suportados': ['binance', 'coinbase', 'kraken', 'okx'],
+    'pares_padrao': ['BTC/USDT', 'ETH/USDT', 'BNB/USDT'],
+    'configuracao_minima': {
+        'valor_inicial': 10000.0,
+        'risco_maximo': 5.0,
+        'stop_loss': 2.0,
+        'take_profit': 4.0
+    }
+}
+
+
 if __name__ == "__main__":
     # Teste das configurações
     try:

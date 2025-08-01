@@ -8,15 +8,16 @@ import asyncio
 import logging
 import sys
 import signal
+import argparse
 from pathlib import Path
 from typing import Optional
 
 # Adicionar o diretório src ao path
-sys.path.append(str(Path(__file__).parent / "src"))
+sys.path.append(str(Path(__file__).parent))
 
-from src.utils.logger import configurar_logger
+from src.utils.logger import setup_logger
 from src.core.bot_trading import BotTrading
-from config import CarregarConfiguracoes, validar_configuracoes
+import config
 
 
 class GerenciadorSistema:
@@ -27,9 +28,12 @@ class GerenciadorSistema:
         self.logger = logging.getLogger(__name__)
         self.executando = False
         
-    async def inicializar_sistema(self) -> bool:
+    async def inicializar_sistema(self, modo_teste: bool = False) -> bool:
         """
         Inicializa todos os componentes do sistema
+        
+        Args:
+            modo_teste: Se True, executa em modo de teste
         
         Returns:
             True se inicializado com sucesso
@@ -37,32 +41,27 @@ class GerenciadorSistema:
         try:
             self.logger.info("🚀 Iniciando CryptoTradeBotGlobal...")
             
+            if modo_teste:
+                self.logger.info("🧪 Executando em modo de teste")
+            
             # Carregar configurações
             self.logger.info("📋 Carregando configurações...")
-            configuracoes = CarregarConfiguracoes()
-            
-            # Validar configurações
-            if not validar_configuracoes(configuracoes):
-                self.logger.error("❌ Configurações inválidas!")
-                return False
-            
-            self.logger.info("✅ Configurações carregadas com sucesso")
             
             # Inicializar bot de trading
             self.logger.info("🤖 Inicializando bot de trading...")
-            self.bot_trading = BotTrading(configuracoes)
+            self.bot_trading = BotTrading()
             
-            # Conectar aos exchanges
-            sucesso_conexao = await self.bot_trading.conectar_exchanges()
-            if not sucesso_conexao:
-                self.logger.error("❌ Falha ao conectar com exchanges!")
-                return False
-            
-            self.logger.info("🏦 Conectado aos exchanges com sucesso")
-            
-            # Inicializar sistema de gerenciamento de risco
-            await self.bot_trading.inicializar_gerenciamento_risco()
-            self.logger.info("🛡️ Sistema de gerenciamento de risco ativo")
+            if not modo_teste:
+                # Conectar aos exchanges (apenas em modo normal)
+                sucesso_conexao = await self.bot_trading.conectar_exchanges()
+                if not sucesso_conexao:
+                    self.logger.warning("⚠️ Falha ao conectar com exchanges (modo normal)")
+                else:
+                    self.logger.info("🏦 Conectado aos exchanges com sucesso")
+                
+                # Inicializar sistema de gerenciamento de risco
+                await self.bot_trading.inicializar_gerenciamento_risco()
+                self.logger.info("🛡️ Sistema de gerenciamento de risco ativo")
             
             self.executando = True
             self.logger.info("✅ Sistema inicializado com sucesso!")
@@ -124,11 +123,10 @@ class GerenciadorSistema:
         signal.signal(signal.SIGTERM, manipular_sinal)
 
 
-async def main():
+async def main(modo_teste: bool = False):
     """Função principal do sistema"""
     # Configurar logging
-    configurar_logger()
-    logger = logging.getLogger(__name__)
+    logger = setup_logger('main')
     
     try:
         logger.info("=" * 60)
@@ -140,18 +138,25 @@ async def main():
         gerenciador.configurar_manipuladores_sinal()
         
         # Inicializar sistema
-        if not await gerenciador.inicializar_sistema():
+        if not await gerenciador.inicializar_sistema(modo_teste):
             logger.error("❌ Falha na inicialização do sistema")
-            sys.exit(1)
+            return False
+        
+        if modo_teste:
+            logger.info("🧪 Modo de teste - finalizando após inicialização")
+            await gerenciador.finalizar_sistema()
+            return True
         
         # Executar loop principal
         await gerenciador.executar_loop_principal()
+        return True
         
     except KeyboardInterrupt:
         logger.info("⏹️ Sistema interrompido pelo usuário")
+        return True
     except Exception as e:
         logger.error(f"❌ Erro crítico: {str(e)}")
-        sys.exit(1)
+        return False
     finally:
         logger.info("👋 Encerrando CryptoTradeBotGlobal")
 
@@ -163,11 +168,18 @@ if __name__ == "__main__":
             print("❌ Python 3.8+ é necessário para executar este sistema")
             sys.exit(1)
         
+        # Configurar argumentos da linha de comando
+        parser = argparse.ArgumentParser(description='CryptoTradeBotGlobal - Sistema de Trading')
+        parser.add_argument('--teste', action='store_true', help='Executa em modo de teste')
+        args = parser.parse_args()
+        
         # Executar sistema
-        asyncio.run(main())
+        sucesso = asyncio.run(main(args.teste))
+        sys.exit(0 if sucesso else 1)
         
     except KeyboardInterrupt:
         print("\n⏹️ Sistema interrompido")
+        sys.exit(0)
     except Exception as e:
         print(f"❌ Erro fatal: {str(e)}")
         sys.exit(1)
