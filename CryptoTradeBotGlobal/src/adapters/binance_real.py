@@ -1,4 +1,166 @@
 """
+Adaptador Real da Binance para o CryptoTradeBotGlobal
+Implementa integração completa com a API oficial da Binance (spot), incluindo CRUD de ordens, logs detalhados, tratamento de edge cases e modo simulação/produção.
+"""
+
+import os
+import time
+import logging
+from decimal import Decimal
+from typing import Dict, Any, List, Optional
+try:
+    from binance.client import Client
+    from binance.exceptions import BinanceAPIException, BinanceOrderException
+except ImportError:
+    Client = None
+    BinanceAPIException = Exception
+    BinanceOrderException = Exception
+
+from src.utils.logger import obter_logger
+
+class BinanceRealAdapter:
+    def __init__(self, api_key: str = None, api_secret: str = None, modo_simulacao: bool = False):
+        self.logger = obter_logger(__name__)
+        self.modo_simulacao = modo_simulacao
+        self.api_key = api_key or os.getenv('BINANCE_API_KEY')
+        self.api_secret = api_secret or os.getenv('BINANCE_API_SECRET')
+        if not self.modo_simulacao and Client:
+            self.client = Client(self.api_key, self.api_secret)
+        else:
+            self.client = None  # Simulação não conecta
+        self.ordens_simuladas: Dict[str, Dict] = {}
+        self.logger.info(f"BinanceRealAdapter inicializado. Modo simulação: {self.modo_simulacao}")
+
+    def criar_ordem(self, simbolo: str, lado: str, quantidade: Decimal, preco: Optional[Decimal] = None) -> Dict:
+        """
+        Cria uma ordem de compra ou venda na Binance (ou simula)
+        """
+        if self.modo_simulacao:
+            ordem_id = f"SIM-{int(time.time()*1000)}"
+            ordem = {
+                'orderId': ordem_id,
+                'symbol': simbolo,
+                'side': lado,
+                'origQty': str(quantidade),
+                'price': str(preco) if preco else None,
+                'status': 'FILLED',
+                'transactTime': int(time.time()*1000)
+            }
+            self.ordens_simuladas[ordem_id] = ordem
+            self.logger.info(f"[SIMULAÇÃO] Ordem criada: {ordem}")
+            return ordem
+        try:
+            if preco:
+                ordem = self.client.create_order(
+                    symbol=simbolo,
+                    side=lado,
+                    type='LIMIT',
+                    timeInForce='GTC',
+                    quantity=float(quantidade),
+                    price=str(preco)
+                )
+            else:
+                ordem = self.client.create_order(
+                    symbol=simbolo,
+                    side=lado,
+                    type='MARKET',
+                    quantity=float(quantidade)
+                )
+            self.logger.info(f"Ordem enviada para Binance: {ordem}")
+            return ordem
+        except (BinanceAPIException, BinanceOrderException) as e:
+            self.logger.error(f"Erro ao criar ordem na Binance: {e}")
+            raise
+
+    def consultar_ordem(self, simbolo: str, ordem_id: str) -> Dict:
+        """
+        Consulta o status de uma ordem específica
+        """
+        if self.modo_simulacao:
+            ordem = self.ordens_simuladas.get(ordem_id)
+            if not ordem:
+                self.logger.warning(f"[SIMULAÇÃO] Ordem não encontrada: {ordem_id}")
+                return {'status': 'NOT_FOUND'}
+            return ordem
+        try:
+            ordem = self.client.get_order(symbol=simbolo, orderId=ordem_id)
+            self.logger.info(f"Consulta de ordem: {ordem}")
+            return ordem
+        except (BinanceAPIException, BinanceOrderException) as e:
+            self.logger.error(f"Erro ao consultar ordem: {e}")
+            return {'status': 'ERROR', 'erro': str(e)}
+
+    def cancelar_ordem(self, simbolo: str, ordem_id: str) -> Dict:
+        """
+        Cancela uma ordem aberta
+        """
+        if self.modo_simulacao:
+            ordem = self.ordens_simuladas.pop(ordem_id, None)
+            if not ordem:
+                self.logger.warning(f"[SIMULAÇÃO] Ordem para cancelar não encontrada: {ordem_id}")
+                return {'status': 'NOT_FOUND'}
+            ordem['status'] = 'CANCELED'
+            self.logger.info(f"[SIMULAÇÃO] Ordem cancelada: {ordem}")
+            return ordem
+        try:
+            resultado = self.client.cancel_order(symbol=simbolo, orderId=ordem_id)
+            self.logger.info(f"Ordem cancelada na Binance: {resultado}")
+            return resultado
+        except (BinanceAPIException, BinanceOrderException) as e:
+            self.logger.error(f"Erro ao cancelar ordem: {e}")
+            return {'status': 'ERROR', 'erro': str(e)}
+
+    def listar_ordens(self, simbolo: str, limite: int = 10) -> List[Dict]:
+        """
+        Lista ordens recentes para um símbolo
+        """
+        if self.modo_simulacao:
+            ordens = [o for o in self.ordens_simuladas.values() if o['symbol'] == simbolo]
+            return ordens[-limite:]
+        try:
+            ordens = self.client.get_all_orders(symbol=simbolo, limit=limite)
+            self.logger.info(f"Ordens recentes: {ordens}")
+            return ordens
+        except (BinanceAPIException, BinanceOrderException) as e:
+            self.logger.error(f"Erro ao listar ordens: {e}")
+            return []
+
+    def saldo(self) -> Dict:
+        """
+        Consulta saldo disponível na conta Binance
+        """
+        if self.modo_simulacao:
+            saldo = {'USDT': {'free': '10000.00', 'locked': '0.00'}}
+            self.logger.info(f"[SIMULAÇÃO] Saldo: {saldo}")
+            return saldo
+        try:
+            info = self.client.get_account()
+            saldos = {b['asset']: b for b in info['balances'] if float(b['free']) > 0 or float(b['locked']) > 0}
+            self.logger.info(f"Saldo real: {saldos}")
+            return saldos
+        except (BinanceAPIException, BinanceOrderException) as e:
+            self.logger.error(f"Erro ao consultar saldo: {e}")
+            return {}
+
+    def testar_conexao(self) -> bool:
+        """
+        Testa conexão com a API Binance
+        """
+        if self.modo_simulacao:
+            self.logger.info("[SIMULAÇÃO] Teste de conexão OK.")
+            return True
+        try:
+            self.client.ping()
+            self.logger.info("Conexão com Binance OK.")
+            return True
+        except Exception as e:
+            self.logger.error(f"Erro de conexão: {e}")
+            return False
+
+# Exemplo de uso:
+# adapter = BinanceRealAdapter(modo_simulacao=True)
+# adapter.criar_ordem('BTCUSDT', 'BUY', Decimal('0.001'))
+"""
 Adaptador Binance Real com CCXT
 Sistema de Trading de Criptomoedas - Português Brasileiro
 """

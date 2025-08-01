@@ -1,0 +1,13 @@
+{
+  // Usar automaticamente as instruções do .github/copilot-instructions.md
+  "github.copilot.chat.codeGeneration.useInstructionFiles": true,
+
+  // Forçar o modelo GPT‑4.1 para todas as conversas (Chat e Agent)
+  "github.copilot.chat.model": "gpt‑4.1",
+
+  // Ativar modo agente para automatizar múltiplas edições/programação
+  "chat.agent.enabled": true,
+
+  // Requer confirmação antes de commit automático
+  "chat.tools.autoApprove": false
+}
