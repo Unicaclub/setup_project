@@ -1,3 +1,59 @@
+# CryptoTradeBotGlobal – Fase 5 SUPREMA
+## 🚀 Deploy Local/Dev/Prod
+```sh
+docker-compose --profile dev up -d
+# ou
+docker-compose --profile prod up -d
+```
+- API: http://localhost:8000
+- Painel Admin: http://localhost:8080
+- Streamlit: http://localhost:8501
+- PostgreSQL: localhost:5432
+- Redis: localhost:6379
+## 🏢 Multi-Tenant SaaS
+- Cada tenant tem seus próprios usuários, planos, assinaturas, dados segregados.
+- JWT obrigatório nas rotas privadas.
+- SSO JWT no painel Streamlit (exemplo em `src/api/streamlit_sso.py`).
+## 🔑 Usuário/Admin/Tenant/Assinatura
+- Seeds: admin@root.com (senha: admin123), Demo Tenant, Plano Demo.
+- CRUD: /usuarios, /planos, /assinaturas, /tenants.
+- Login: /login (JWT), Google OAuth2 (exemplo/documentação).
+## 💸 Stripe Billing (Sandbox)
+- Stripe Checkout integrado (sandbox).
+- Webhooks: pagamento, renovação, cancelamento.
+- Teste: use cartões de teste Stripe.
+## 🛡️ Painel Admin & Streamlit
+- Painel admin FastAPI-admin (ou próprio).
+- Streamlit: cada tenant só vê seus dados/ordens.
+- Exemplo de uso JWT no painel.
+## 🧪 Testes & Seeds
+- Testes automáticos: pytest, FastAPI TestClient, Stripe mock.
+- Scripts seed: `python src/api/seeds.py`.
+## 📚 Documentação
+- Endpoints: Swagger em `/docs`.
+- Exemplos de uso API JSON no README.
+- Roadmap Fase 6: ML, backtest, auto-otimização.
+## 🔗 Exemplos de API
+```json
+POST /login
+{
+  "username": "admin@root.com",
+  "password": "admin123"
+}
+
+GET /usuarios (JWT)
+Authorization: Bearer <token>
+
+POST /planos (JWT)
+{
+  "nome": "Pro",
+  "preco": 99.9,
+  "descricao": "Plano Pro"
+}
+```
+
+## 🛣️ Roadmap Fase 6
+- Estratégias ML, backtest multi-tenant, auto-otimização, relatórios avançados.
 # 🤖 CryptoTradeBotGlobal
 
 **Sistema Completo de Trading de Criptomoedas em Português Brasileiro**

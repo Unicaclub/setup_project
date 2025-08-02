@@ -2,74 +2,74 @@
 # Sistema de Trading de Criptomoedas - Português Brasileiro
 
 version: '3.8'
+version: '3.9'
 
 services:
-  # Aplicação principal
-  cryptobot:
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: cryptotradebotglobal
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    profiles: ["dev", "prod"]
+
+  redis:
+    image: redis:7
+    restart: always
+    ports:
+      - "6379:6379"
+    profiles: ["dev", "prod"]
+
+  api:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: cryptobot-app
-    restart: unless-stopped
+    command: uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --reload
+    environment:
+      DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/cryptotradebotglobal
+      JWT_SECRET: supersecretkey
+      STRIPE_SECRET_KEY: sk_test_123
+      STRIPE_WEBHOOK_SECRET: whsec_test
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+    profiles: ["dev", "prod"]
+
+  streamlit:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: streamlit run src/api/streamlit_sso.py --server.port 8501
+    environment:
+      API_URL: http://api:8000
+    ports:
+      - "8501:8501"
+    depends_on:
+      - api
+    profiles: ["dev", "prod"]
+
+  admin:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: uvicorn src.api.admin_panel:app --host 0.0.0.0 --port 8080
+    environment:
+      DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/cryptotradebotglobal
     ports:
       - "8080:8080"
-    environment:
-      - ENVIRONMENT=production
-      - DB_HOST=postgres
-      - REDIS_HOST=redis
-      - API_HOST=0.0.0.0
-      - API_PORT=8080
-    volumes:
-      - ./logs:/app/logs
-      - ./data:/app/data
-      - ./.env:/app/.env:ro
     depends_on:
-      - postgres
-      - redis
-    networks:
-      - cryptobot-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+      - db
+    profiles: ["dev", "prod"]
 
-  # Banco de dados PostgreSQL
-  postgres:
-    image: postgres:15-alpine
-    container_name: cryptobot-postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: cryptobot
-      POSTGRES_USER: cryptobot
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-cryptobot_password}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./scripts/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql:ro
-    ports:
-      - "5432:5432"
-    networks:
-      - cryptobot-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U cryptobot -d cryptobot"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # Redis para cache e filas
-  redis:
-    image: redis:7-alpine
-    container_name: cryptobot-redis
-    restart: unless-stopped
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis_password}
-    volumes:
-      - redis_data:/data
-    ports:
-      - "6379:6379"
-    networks:
-      - cryptobot-network
-    healthcheck:
+volumes:
+  pgdata:
       test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
       interval: 10s
       timeout: 3s
