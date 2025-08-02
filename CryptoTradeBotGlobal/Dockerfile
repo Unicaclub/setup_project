@@ -1,19 +1,24 @@
-# Dockerfile multi-stage para API + Streamlit
 FROM python:3.11-slim AS builder
 WORKDIR /app
-COPY requirements.txt ./
-RUN pip install --upgrade pip && pip install --user -r requirements.txt
-
-FROM python:3.11-slim
-WORKDIR /app
-COPY --from=builder /root/.local /root/.local
-ENV PATH=/root/.local/bin:$PATH
+COPY requirements.txt .
+RUN pip install --no-cache-dir --upgrade -r requirements.txt
 COPY . .
-RUN adduser --disabled-password --gecos '' appuser && chown -R appuser /app
+# Opcional: Remover arquivos de dev/testes para imagem final enxuta
+
+FROM python:3.11-slim AS runtime
+RUN apt-get update && apt-get install -y curl && \
+    addgroup --system appgroup && adduser --system appuser --ingroup appgroup && \
+    rm -rf /var/lib/apt/lists/*
 USER appuser
+WORKDIR /app
+COPY --from=builder /app /app
 EXPOSE 8000 8501
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 CMD curl -f http://localhost:8000/ || exit 1
-CMD ["sh", "-c", "uvicorn src.api.main:app --host 0.0.0.0 --port 8000 & streamlit run streamlit_dashboard.py --server.port 8501"]
+HEALTHCHECK --interval=10s --timeout=5s --start-period=10s --retries=3 \
+  CMD curl --fail http://localhost:8000/health || curl --fail http://localhost:8501/_stcore/health || exit 1
+# Por padrão, inicia a API FastAPI. Para rodar o painel, altere o CMD abaixo.
+CMD ["sh", "-c", "uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --reload"]
+# Para rodar o painel Streamlit, use:
+# CMD ["sh", "-c", "streamlit run streamlit_dashboard.py --server.port 8501 --server.address 0.0.0.0"]
 # Dockerfile para CryptoTradeBotGlobal
 # Sistema de Trading de Criptomoedas - Português Brasileiro
 

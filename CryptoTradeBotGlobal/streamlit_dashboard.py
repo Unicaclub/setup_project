@@ -26,106 +26,8 @@ with abas[0]:
             if jwt_token:
                 r = requests.post(f"{API_URL}/bot/start", headers=headers)
                 st.write(r.json())
-            else:
-                st.warning("JWT obrigatório!")
-    with col2:
-        if st.button("Stop Bot"):
-            if jwt_token:
-                r = requests.post(f"{API_URL}/bot/stop", headers=headers)
-                st.write(r.json())
-            else:
-                st.warning("JWT obrigatório!")
-    # Gráfico de ordens (modo demo ou autenticado)
-    ordens = []
-    try:
-        if jwt_token:
-            r = requests.get(f"{API_URL}/ordens", headers=headers)
-        else:
-            r = requests.get(f"{API_URL}/ordens?demo=1")
-        if r.ok:
-            ordens = r.json()
-    except Exception:
-        pass
-    if ordens:
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(x=[o.get('timestamp', i) for i, o in enumerate(ordens)], y=[o.get('preco', 0) for o in ordens], mode='lines+markers', name='Preço'))
-        st.plotly_chart(fig, use_container_width=True)
-    else:
-        st.info("Sem ordens para exibir.")
-
-with abas[1]:
-    st.header("Gestão de Risco")
-    risco = None
-    try:
-        if jwt_token:
-            r = requests.get(f"{API_URL}/risco", headers=headers)
-        else:
-            r = requests.get(f"{API_URL}/risco?demo=1")
-        if r.ok:
-            risco = r.json()
-    except Exception:
-        pass
-    if risco:
-        fig = go.Figure()
-        fig.add_trace(go.Bar(x=list(risco.keys()), y=list(risco.values())))
-        st.plotly_chart(fig, use_container_width=True)
-    else:
-        st.info("Sem dados de risco.")
-# (restante igual)
-
-with abas[2]:
-    st.header("Logs do Sistema")
-    if jwt_token:
-        r = requests.get(f"{API_URL}/logs", headers=headers)
-        if r.ok:
-            logs = r.json()
             if logs:
-                st.code("\n".join(logs[-100:]), language="text")
-            else:
-                st.info("Sem logs.")
-        else:
-            st.info("Sem logs.")
-    else:
-        st.warning("JWT obrigatório!")
-
-with abas[3]:
-    st.header("Dashboard de Performance")
-    if jwt_token:
-        r = requests.get(f"{API_URL}/performance", headers=headers)
-        if r.ok:
-            perf = r.json()
-            if perf and 'datas' in perf and 'pnl' in perf:
-                fig = go.Figure()
-                fig.add_trace(go.Scatter(x=perf['datas'], y=perf['pnl'], mode='lines+markers', name='PnL'))
-                st.plotly_chart(fig, use_container_width=True)
-            else:
-                st.info("Sem dados de performance.")
-        else:
-            st.info("Sem dados de performance.")
-    else:
-        st.warning("JWT obrigatório!")
-    st.session_state.bot_running = False
-if 'dados_historicos' not in st.session_state:
-    st.session_state.dados_historicos = []
-if 'alertas_manager' not in st.session_state:
-    st.session_state.alertas_manager = None
-
-# Logger
-logger = obter_logger(__name__)
-
-class DashboardManager:
-    """Gerenciador do dashboard Streamlit"""
-    
-    def __init__(self):
-        self.config = obter_configuracao()
-        self.dados_simulados = self._gerar_dados_simulados()
-        
-    def _gerar_dados_simulados(self) -> Dict[str, Any]:
-        """Gera dados simulados para demonstração"""
-        import random
-        import numpy as np
-        
-        # Gerar dados de preços simulados
+"""
         base_price = 50000
         timestamps = []
         prices = []
@@ -366,7 +268,7 @@ def dashboard_tab():
         st.markdown(f"""
         **Trades Vencedores:** {dashboard.dados_simulados['winning_trades']}  
         **Trades Perdedores:** {dashboard.dados_simulados['losing_trades']}  
-        **Volume Total:** ${dashboard.dados_simulados['total_volume']:,.2f}  
+        **Volume Total:** R${dashboard.dados_simulados['total_volume']:,.2f}  
         **Taxa de Acerto:** {0 if dashboard.dados_simulados['total_trades'] == 0 else (dashboard.dados_simulados['winning_trades'] / dashboard.dados_simulados['total_trades'] * 100):.1f}%
         """)
         
