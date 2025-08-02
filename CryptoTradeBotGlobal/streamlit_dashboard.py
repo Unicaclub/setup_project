@@ -9,6 +9,7 @@ API_URL = os.getenv("API_URL", "http://localhost:8000")
 
 st.set_page_config(page_title="CryptoTradeBotGlobal Dashboard", layout="wide")
 
+
 # Integração SSO JWT
 jwt_token = st.session_state.get("JWT_TOKEN") or st.text_input("Cole seu JWT aqui:", type="password")
 headers = {"Authorization": f"Bearer {jwt_token}"} if jwt_token else {}
@@ -34,36 +35,43 @@ with abas[0]:
                 st.write(r.json())
             else:
                 st.warning("JWT obrigatório!")
-    # Gráfico de ordens
-    if jwt_token:
-        r = requests.get(f"{API_URL}/ordens", headers=headers)
+    # Gráfico de ordens (modo demo ou autenticado)
+    ordens = []
+    try:
+        if jwt_token:
+            r = requests.get(f"{API_URL}/ordens", headers=headers)
+        else:
+            r = requests.get(f"{API_URL}/ordens?demo=1")
         if r.ok:
             ordens = r.json()
-            if ordens:
-                fig = go.Figure()
-                fig.add_trace(go.Scatter(x=[o['timestamp'] for o in ordens], y=[o['preco'] for o in ordens], mode='lines+markers', name='Preço'))
-                st.plotly_chart(fig, use_container_width=True)
-            else:
-                st.info("Sem ordens para exibir.")
-        else:
-            st.info("Sem ordens para exibir.")
+    except Exception:
+        pass
+    if ordens:
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=[o.get('timestamp', i) for i, o in enumerate(ordens)], y=[o.get('preco', 0) for o in ordens], mode='lines+markers', name='Preço'))
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.info("Sem ordens para exibir.")
 
 with abas[1]:
     st.header("Gestão de Risco")
-    if jwt_token:
-        r = requests.get(f"{API_URL}/risco", headers=headers)
+    risco = None
+    try:
+        if jwt_token:
+            r = requests.get(f"{API_URL}/risco", headers=headers)
+        else:
+            r = requests.get(f"{API_URL}/risco?demo=1")
         if r.ok:
             risco = r.json()
-            if risco:
-                fig = go.Figure()
-                fig.add_trace(go.Bar(x=list(risco.keys()), y=list(risco.values())))
-                st.plotly_chart(fig, use_container_width=True)
-            else:
-                st.info("Sem dados de risco.")
-        else:
-            st.info("Sem dados de risco.")
+    except Exception:
+        pass
+    if risco:
+        fig = go.Figure()
+        fig.add_trace(go.Bar(x=list(risco.keys()), y=list(risco.values())))
+        st.plotly_chart(fig, use_container_width=True)
     else:
-        st.warning("JWT obrigatório!")
+        st.info("Sem dados de risco.")
+# (restante igual)
 
 with abas[2]:
     st.header("Logs do Sistema")

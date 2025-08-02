@@ -37,8 +37,20 @@ jobs:
         run: docker compose --profile dev config
       - name: Docker Compose config (prod)
         run: docker compose --profile prod config
-      - name: Run tests
-        run: pytest tests/test_* -v --maxfail=1 --disable-warnings
+      - name: Run tests (dev)
+        run: |
+          docker compose --profile dev up -d
+          sleep 10
+          pytest tests/test_* -v --maxfail=1 --disable-warnings
+          curl -f http://localhost:8501 || exit 1
+          docker compose --profile dev down
+      - name: Run tests (prod)
+        run: |
+          docker compose --profile prod up -d
+          sleep 10
+          pytest tests/test_* -v --maxfail=1 --disable-warnings
+          curl -f http://localhost:8501 || exit 1
+          docker compose --profile prod down
       - name: Coverage
         run: coverage run -m pytest && coverage report --fail-under=80
       - name: Coverage Badge

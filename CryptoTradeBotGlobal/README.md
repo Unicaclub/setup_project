@@ -1,4 +1,30 @@
-# ![](coverage.svg)
+# Cobertura de teste: ![](coverage.svg)
+## Fase 4 Legacy Dashboard
+
+Para rodar o painel legado:
+
+```sh
+streamlit run streamlit_dashboard.py
+```
+
+O painel exibe ordens, risco, logs e performance, inclusive em modo demo (sem login).
+
+---
+## Endpoints principais
+
+- `POST /login` — autenticação JWT
+- `POST /bot/start` — inicia o bot de trading
+- `POST /bot/stop` — para o bot
+- `GET /ordens` — lista ordens do bot (JWT ou demo)
+- `GET /performance` — dados de performance do bot
+## Exemplos curl
+
+```sh
+curl -X POST http://localhost:8000/login -d "username=admin@root.com&password=admin123"
+curl -H "Authorization: Bearer <token>" http://localhost:8000/bot/start
+curl -H "Authorization: Bearer <token>" http://localhost:8000/ordens
+curl -H "Authorization: Bearer <token>" http://localhost:8000/performance
+```
 ## 🐳 Dockerfile & Execução Manual
 
 ```sh
