@@ -1,0 +1,306 @@
+# Exchange Configuration for CryptoTradeBotGlobal
+# Production-ready exchange settings with comprehensive parameters
+
+exchanges:
+  binance:
+    name: "Binance"
+    enabled: true
+    priority: 1
+    type: "spot"
+    
+    # API Configuration
+    api:
+      base_url: "https://api.binance.com"
+      sandbox_url: "https://testnet.binance.vision"
+      version: "v3"
+      timeout: 30
+      
+    # Rate Limiting (Binance specific limits)
+    rate_limits:
+      requests_per_second: 10
+      requests_per_minute: 1200
+      orders_per_second: 10
+      orders_per_day: 200000
+      
+    # Trading Pairs Configuration
+    trading_pairs:
+      - "BTC/USDT"
+      - "ETH/USDT"
+      - "BNB/USDT"
+      - "ADA/USDT"
+      - "DOT/USDT"
+      - "LINK/USDT"
+      - "SOL/USDT"
+      - "MATIC/USDT"
+      - "AVAX/USDT"
+      - "ATOM/USDT"
+      
+    # Order Types Supported
+    order_types:
+      - "market"
+      - "limit"
+      - "stop_loss"
+      - "stop_loss_limit"
+      - "take_profit"
+      - "take_profit_limit"
+      - "limit_maker"
+      
+    # WebSocket Configuration
+    websocket:
+      base_url: "wss://stream.binance.com:9443"
+      sandbox_url: "wss://testnet.binance.vision"
+      max_connections: 5
+      ping_interval: 30
+      reconnect_attempts: 5
+      
+    # Fees Structure
+    fees:
+      maker: 0.001  # 0.1%
+      taker: 0.001  # 0.1%
+      withdrawal: 0.0005  # Variable by asset
+      
+    # Risk Management
+    risk_limits:
+      max_position_size: 10000.0
+      max_daily_volume: 100000.0
+      max_open_orders: 200
+      
+  coinbase:
+    name: "Coinbase Pro"
+    enabled: true
+    priority: 2
+    type: "spot"
+    
+    # API Configuration
+    api:
+      base_url: "https://api.exchange.coinbase.com"
+      sandbox_url: "https://api-public.sandbox.exchange.coinbase.com"
+      timeout: 30
+      
+    # Rate Limiting (Coinbase specific limits)
+    rate_limits:
+      requests_per_second: 10
+      requests_per_minute: 600
+      orders_per_second: 5
+      
+    # Trading Pairs Configuration
+    trading_pairs:
+      - "BTC-USD"
+      - "ETH-USD"
+      - "LTC-USD"
+      - "BCH-USD"
+      - "ETC-USD"
+      - "ZRX-USD"
+      - "BAT-USD"
+      - "LINK-USD"
+      - "ADA-USD"
+      - "DOT-USD"
+      
+    # Order Types Supported
+    order_types:
+      - "market"
+      - "limit"
+      - "stop"
+      - "stop_limit"
+      
+    # WebSocket Configuration
+    websocket:
+      base_url: "wss://ws-feed.exchange.coinbase.com"
+      sandbox_url: "wss://ws-feed-public.sandbox.exchange.coinbase.com"
+      max_connections: 3
+      ping_interval: 30
+      
+    # Fees Structure
+    fees:
+      maker: 0.005  # 0.5%
+      taker: 0.005  # 0.5%
+      withdrawal: 0.0  # Free for most assets
+      
+    # Risk Management
+    risk_limits:
+      max_position_size: 5000.0
+      max_daily_volume: 50000.0
+      max_open_orders: 100
+      
+  kraken:
+    name: "Kraken"
+    enabled: true
+    priority: 3
+    type: "spot"
+    
+    # API Configuration
+    api:
+      base_url: "https://api.kraken.com"
+      version: "0"
+      timeout: 30
+      
+    # Rate Limiting (Kraken specific limits)
+    rate_limits:
+      requests_per_second: 1
+      requests_per_minute: 60
+      orders_per_second: 1
+      
+    # Trading Pairs Configuration
+    trading_pairs:
+      - "XXBTZUSD"  # BTC/USD
+      - "XETHZUSD"  # ETH/USD
+      - "XLTCZUSD"  # LTC/USD
+      - "XRPZUSD"   # XRP/USD
+      - "ADAUSD"    # ADA/USD
+      - "DOTUSD"    # DOT/USD
+      - "LINKUSD"   # LINK/USD
+      - "SOLUSD"    # SOL/USD
+      
+    # Order Types Supported
+    order_types:
+      - "market"
+      - "limit"
+      - "stop-loss"
+      - "take-profit"
+      - "stop-loss-limit"
+      - "take-profit-limit"
+      
+    # WebSocket Configuration
+    websocket:
+      base_url: "wss://ws.kraken.com"
+      max_connections: 2
+      ping_interval: 30
+      
+    # Fees Structure
+    fees:
+      maker: 0.0016  # 0.16%
+      taker: 0.0026  # 0.26%
+      withdrawal: 0.0005  # Variable by asset
+      
+    # Risk Management
+    risk_limits:
+      max_position_size: 5000.0
+      max_daily_volume: 25000.0
+      max_open_orders: 50
+      
+  okx:
+    name: "OKX"
+    enabled: false  # Disabled by default
+    priority: 4
+    type: "spot"
+    
+    # API Configuration
+    api:
+      base_url: "https://www.okx.com"
+      sandbox_url: "https://www.okx.com"
+      version: "v5"
+      timeout: 30
+      
+    # Rate Limiting
+    rate_limits:
+      requests_per_second: 20
+      requests_per_minute: 1200
+      orders_per_second: 60
+      
+    # Trading Pairs Configuration
+    trading_pairs:
+      - "BTC-USDT"
+      - "ETH-USDT"
+      - "LTC-USDT"
+      - "BCH-USDT"
+      - "ETC-USDT"
+      - "LINK-USDT"
+      - "ADA-USDT"
+      - "DOT-USDT"
+      
+    # Order Types Supported
+    order_types:
+      - "market"
+      - "limit"
+      - "post_only"
+      - "fok"
+      - "ioc"
+      
+    # WebSocket Configuration
+    websocket:
+      base_url: "wss://ws.okx.com:8443/ws/v5/public"
+      private_url: "wss://ws.okx.com:8443/ws/v5/private"
+      max_connections: 5
+      
+    # Fees Structure
+    fees:
+      maker: 0.0008  # 0.08%
+      taker: 0.001   # 0.1%
+      withdrawal: 0.0004
+      
+    # Risk Management
+    risk_limits:
+      max_position_size: 8000.0
+      max_daily_volume: 40000.0
+      max_open_orders: 100
+
+# Global Exchange Settings
+global_settings:
+  # Connection Management
+  connection_pool_size: 10
+  max_retries: 3
+  retry_delay: 1.0
+  
+  # Data Management
+  orderbook_depth: 20
+  kline_intervals: ["1m", "5m", "15m", "1h", "4h", "1d"]
+  
+  # Health Monitoring
+  health_check_interval: 60
+  connection_timeout: 30
+  
+  # Failover Configuration
+  enable_failover: true
+  failover_threshold: 3  # Failed requests before failover
+  failover_cooldown: 300  # 5 minutes
+  
+  # Data Validation
+  validate_symbols: true
+  validate_orders: true
+  validate_balances: true
+  
+  # Logging
+  log_all_requests: false
+  log_errors: true
+  log_performance: true
+
+# Market Data Configuration
+market_data:
+  # Real-time Data
+  enable_ticker_stream: true
+  enable_orderbook_stream: true
+  enable_trades_stream: true
+  enable_kline_stream: true
+  
+  # Historical Data
+  historical_data_retention: 365  # days
+  max_historical_requests: 1000
+  
+  # Data Quality
+  enable_data_validation: true
+  outlier_detection: true
+  missing_data_handling: "interpolate"
+  
+  # Performance
+  buffer_size: 1000
+  batch_processing: true
+  compression: true
+
+# Security Configuration
+security:
+  # API Key Management
+  encrypt_api_keys: true
+  rotate_keys_days: 90
+  
+  # Request Signing
+  verify_signatures: true
+  timestamp_window: 5000  # milliseconds
+  
+  # IP Whitelisting
+  enable_ip_whitelist: false
+  allowed_ips: []
+  
+  # Audit Logging
+  log_all_api_calls: true
+  log_sensitive_data: false
+  audit_retention_days: 365

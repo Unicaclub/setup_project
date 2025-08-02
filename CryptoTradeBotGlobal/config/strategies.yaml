@@ -1,0 +1,360 @@
+# Trading Strategies Configuration for CryptoTradeBotGlobal
+# Production-ready strategy parameters with risk management
+
+strategies:
+  trend_following:
+    name: "Trend Following Strategy"
+    enabled: true
+    priority: 1
+    type: "technical"
+    
+    # Strategy Parameters
+    parameters:
+      # Moving Average Settings
+      fast_ma_period: 12
+      slow_ma_period: 26
+      signal_period: 9
+      ma_type: "EMA"  # SMA, EMA, WMA
+      
+      # Trend Confirmation
+      min_trend_strength: 0.6
+      trend_confirmation_periods: 3
+      
+      # Entry/Exit Conditions
+      entry_threshold: 0.02  # 2% price movement
+      exit_threshold: 0.015  # 1.5% price movement
+      stop_loss_pct: 0.03    # 3% stop loss
+      take_profit_pct: 0.06  # 6% take profit
+      
+      # Volume Confirmation
+      volume_confirmation: true
+      min_volume_ratio: 1.5
+      
+    # Risk Management
+    risk_management:
+      max_position_size: 1000.0
+      position_sizing_method: "fixed"  # fixed, percentage, kelly
+      risk_per_trade: 0.02  # 2% of portfolio
+      max_concurrent_positions: 3
+      
+    # Timeframes
+    timeframes:
+      primary: "1h"
+      confirmation: "4h"
+      entry: "15m"
+      
+    # Trading Pairs
+    trading_pairs:
+      - "BTC/USDT"
+      - "ETH/USDT"
+      - "BNB/USDT"
+      - "ADA/USDT"
+      - "DOT/USDT"
+      
+    # Performance Metrics
+    performance:
+      min_win_rate: 0.45
+      min_profit_factor: 1.2
+      max_drawdown: 0.15
+      
+  mean_reversion:
+    name: "Mean Reversion Strategy"
+    enabled: true
+    priority: 2
+    type: "technical"
+    
+    # Strategy Parameters
+    parameters:
+      # Bollinger Bands Settings
+      bb_period: 20
+      bb_std_dev: 2.0
+      
+      # RSI Settings
+      rsi_period: 14
+      rsi_oversold: 30
+      rsi_overbought: 70
+      
+      # Mean Reversion Thresholds
+      deviation_threshold: 0.025  # 2.5% from mean
+      reversion_confirmation: 2   # periods
+      
+      # Entry/Exit Conditions
+      entry_rsi_threshold: 25     # Extreme oversold
+      exit_rsi_threshold: 50      # Return to neutral
+      stop_loss_pct: 0.04         # 4% stop loss
+      take_profit_pct: 0.03       # 3% take profit
+      
+    # Risk Management
+    risk_management:
+      max_position_size: 800.0
+      position_sizing_method: "percentage"
+      risk_per_trade: 0.015  # 1.5% of portfolio
+      max_concurrent_positions: 5
+      
+    # Timeframes
+    timeframes:
+      primary: "4h"
+      confirmation: "1d"
+      entry: "1h"
+      
+    # Trading Pairs
+    trading_pairs:
+      - "BTC/USDT"
+      - "ETH/USDT"
+      - "LINK/USDT"
+      - "SOL/USDT"
+      - "MATIC/USDT"
+      
+    # Performance Metrics
+    performance:
+      min_win_rate: 0.55
+      min_profit_factor: 1.3
+      max_drawdown: 0.12
+      
+  breakout_trader:
+    name: "Breakout Trading Strategy"
+    enabled: true
+    priority: 3
+    type: "technical"
+    
+    # Strategy Parameters
+    parameters:
+      # Support/Resistance Levels
+      lookback_period: 50
+      min_touches: 3
+      level_tolerance: 0.005  # 0.5%
+      
+      # Breakout Confirmation
+      breakout_threshold: 0.02  # 2% beyond level
+      volume_spike_ratio: 2.0   # 2x average volume
+      confirmation_candles: 2
+      
+      # Entry/Exit Conditions
+      entry_delay_candles: 1
+      stop_loss_pct: 0.025      # 2.5% stop loss
+      take_profit_ratio: 3.0    # 3:1 reward:risk
+      trailing_stop: true
+      trailing_stop_pct: 0.015  # 1.5%
+      
+    # Risk Management
+    risk_management:
+      max_position_size: 1200.0
+      position_sizing_method: "volatility"
+      risk_per_trade: 0.025  # 2.5% of portfolio
+      max_concurrent_positions: 2
+      
+    # Timeframes
+    timeframes:
+      primary: "1d"
+      confirmation: "4h"
+      entry: "1h"
+      
+    # Trading Pairs
+    trading_pairs:
+      - "BTC/USDT"
+      - "ETH/USDT"
+      - "BNB/USDT"
+      - "AVAX/USDT"
+      - "ATOM/USDT"
+      
+    # Performance Metrics
+    performance:
+      min_win_rate: 0.40
+      min_profit_factor: 1.5
+      max_drawdown: 0.18
+      
+  arbitrage:
+    name: "Inter-Exchange Arbitrage"
+    enabled: false  # Requires multiple exchanges
+    priority: 4
+    type: "arbitrage"
+    
+    # Strategy Parameters
+    parameters:
+      # Arbitrage Thresholds
+      min_profit_threshold: 0.005  # 0.5% minimum profit
+      max_execution_time: 30       # seconds
+      
+      # Exchange Pairs
+      exchange_pairs:
+        - ["binance", "coinbase"]
+        - ["binance", "kraken"]
+        - ["coinbase", "kraken"]
+        
+      # Order Book Analysis
+      orderbook_depth: 10
+      slippage_buffer: 0.002  # 0.2%
+      
+      # Execution Parameters
+      max_order_size: 500.0
+      split_large_orders: true
+      order_split_threshold: 1000.0
+      
+    # Risk Management
+    risk_management:
+      max_position_size: 2000.0
+      position_sizing_method: "fixed"
+      risk_per_trade: 0.01  # 1% of portfolio
+      max_concurrent_arbitrages: 3
+      
+    # Trading Pairs
+    trading_pairs:
+      - "BTC/USDT"
+      - "ETH/USDT"
+      - "BNB/USDT"
+      
+    # Performance Metrics
+    performance:
+      min_win_rate: 0.80
+      min_profit_factor: 2.0
+      max_drawdown: 0.05
+      
+  ml_ensemble:
+    name: "Machine Learning Ensemble"
+    enabled: false  # Requires ML models
+    priority: 5
+    type: "machine_learning"
+    
+    # Strategy Parameters
+    parameters:
+      # Model Configuration
+      models:
+        - "lstm"
+        - "random_forest"
+        - "xgboost"
+        - "svm"
+        
+      # Feature Engineering
+      features:
+        - "price_features"
+        - "volume_features"
+        - "technical_indicators"
+        - "market_sentiment"
+        - "on_chain_metrics"
+        
+      # Prediction Settings
+      prediction_horizon: 24  # hours
+      confidence_threshold: 0.7
+      ensemble_method: "weighted_average"
+      
+      # Model Training
+      retrain_frequency: 168  # hours (weekly)
+      validation_split: 0.2
+      test_split: 0.1
+      
+    # Risk Management
+    risk_management:
+      max_position_size: 1500.0
+      position_sizing_method: "kelly"
+      risk_per_trade: 0.03  # 3% of portfolio
+      max_concurrent_positions: 4
+      
+    # Timeframes
+    timeframes:
+      primary: "1h"
+      features: ["5m", "15m", "1h", "4h", "1d"]
+      
+    # Trading Pairs
+    trading_pairs:
+      - "BTC/USDT"
+      - "ETH/USDT"
+      - "BNB/USDT"
+      - "ADA/USDT"
+      - "DOT/USDT"
+      - "LINK/USDT"
+      
+    # Performance Metrics
+    performance:
+      min_win_rate: 0.50
+      min_profit_factor: 1.4
+      max_drawdown: 0.20
+
+# Global Strategy Settings
+global_settings:
+  # Execution Settings
+  max_total_positions: 10
+  max_portfolio_risk: 0.10  # 10% of portfolio at risk
+  
+  # Performance Monitoring
+  performance_review_frequency: 24  # hours
+  auto_disable_threshold: 0.25      # 25% drawdown
+  
+  # Strategy Allocation
+  allocation_method: "equal_weight"  # equal_weight, risk_parity, performance_based
+  rebalance_frequency: 168          # hours (weekly)
+  
+  # Risk Controls
+  global_stop_loss: 0.15           # 15% portfolio drawdown
+  daily_loss_limit: 0.05           # 5% daily loss limit
+  correlation_limit: 0.7           # Max correlation between strategies
+  
+  # Execution Controls
+  min_order_interval: 60           # seconds between orders
+  max_orders_per_minute: 10
+  order_size_limits:
+    min: 10.0
+    max: 5000.0
+    
+  # Market Conditions
+  market_regime_detection: true
+  volatility_adjustment: true
+  news_sentiment_filter: false
+  
+  # Backtesting
+  backtest_period: 365            # days
+  walk_forward_analysis: true
+  out_of_sample_period: 90        # days
+  
+# Strategy Performance Tracking
+performance_tracking:
+  # Metrics to Track
+  metrics:
+    - "total_return"
+    - "sharpe_ratio"
+    - "max_drawdown"
+    - "win_rate"
+    - "profit_factor"
+    - "average_trade_duration"
+    - "trades_per_day"
+    - "volatility"
+    
+  # Reporting
+  daily_report: true
+  weekly_report: true
+  monthly_report: true
+  
+  # Alerts
+  performance_alerts:
+    drawdown_threshold: 0.10
+    win_rate_threshold: 0.30
+    profit_factor_threshold: 0.8
+    
+  # Benchmarking
+  benchmarks:
+    - "BTC"
+    - "ETH"
+    - "60/40_portfolio"
+    - "equal_weight_crypto"
+
+# Strategy Optimization
+optimization:
+  # Parameter Optimization
+  enable_optimization: false
+  optimization_frequency: 720      # hours (monthly)
+  optimization_method: "bayesian"  # grid, random, bayesian
+  
+  # Genetic Algorithm Settings
+  population_size: 50
+  generations: 100
+  mutation_rate: 0.1
+  crossover_rate: 0.8
+  
+  # Objective Function
+  optimization_metric: "sharpe_ratio"
+  constraints:
+    max_drawdown: 0.20
+    min_trades: 100
+    
+  # Walk-Forward Optimization
+  walk_forward_periods: 12
+  reoptimization_threshold: 0.15   # Performance degradation threshold
