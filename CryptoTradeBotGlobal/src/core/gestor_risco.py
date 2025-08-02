@@ -26,89 +26,85 @@ class TipoRisco(Enum):
 
 
 class StatusRisco(Enum):
-    """Status do risco"""
-    BAIXO = "baixo"
-    MEDIO = "medio"
-    ALTO = "alto"
-    CRITICO = "critico"
 
-
-@dataclass
-class AlertaRisco:
-    """Estrutura de um alerta de risco"""
-    tipo: TipoRisco
-    nivel: StatusRisco
-    valor_atual: Decimal
-    limite: Decimal
-    simbolo: Optional[str] = None
-    timestamp: datetime = None
-    
-    def __post_init__(self):
-        if self.timestamp is None:
-            self.timestamp = datetime.now()
-
-
-@dataclass
-class ParametrosRisco:
-    """Parâmetros de configuração de risco"""
-    # Limites de drawdown
-    drawdown_maximo: Decimal = Decimal('0.15')  # 15%
-    drawdown_alerta: Decimal = Decimal('0.10')  # 10%
-    
-    # Limites de perda diária
-    perda_diaria_maxima: Decimal = Decimal('500.0')  # $500
-    perda_diaria_alerta: Decimal = Decimal('300.0')  # $300
-    
-    # Tamanho máximo de posição
-    posicao_maxima_usd: Decimal = Decimal('1000.0')  # $1000
-    posicao_maxima_percentual: Decimal = Decimal('0.20')  # 20% do portfolio
-    
-    # Stop loss e take profit
-    stop_loss_padrao: Decimal = Decimal('0.03')  # 3%
-    take_profit_padrao: Decimal = Decimal('0.06')  # 6%
-    
-    # Limites de volatilidade
-    volatilidade_maxima: Decimal = Decimal('0.05')  # 5% por hora
-    
-    # Número máximo de posições simultâneas
-    max_posicoes_simultaneas: int = 3
-    
-    # Correlação máxima entre posições
-    correlacao_maxima: Decimal = Decimal('0.70')  # 70%
-
-
+# Classe compatível com os testes legados
 class GestorRisco:
     """
-    Gestor de Risco Avançado
-    Monitora e controla todos os aspectos de risco do sistema de trading
+    Classe de gestão de risco: stop-loss, drawdown diário, bloqueio de ordens
     """
-    
-    def __init__(self, parametros: ParametrosRisco = None, config_alertas: Dict = None):
-        """
-        Inicializa o gestor de risco
-        
-        Args:
-            parametros: Parâmetros de configuração de risco
-            config_alertas: Configuração do sistema de alertas
-        """
-        self.logger = obter_logger(__name__)
-        self.parametros = parametros or ParametrosRisco()
-        
-        # Sistema de alertas
-        self.alertas_manager = None
-        if config_alertas:
-            self.alertas_manager = criar_gerenciador_alertas(config_alertas)
-        
-        # Estado do sistema
-        self.portfolio_inicial = Decimal('10000.0')  # Valor inicial do portfolio
-        self.portfolio_atual = self.portfolio_inicial
-        self.pico_portfolio = self.portfolio_inicial
-        self.perda_diaria_atual = Decimal('0.0')
-        self.data_atual = datetime.now().date()
-        
-        # Posições ativas
-        self.posicoes_ativas: Dict[str, Dict] = {}
-        
+    def __init__(self, limite_stop: float = 0.05, limite_drawdown: float = 0.10, janela_drawdown_min: int = 1440):
+        from decimal import Decimal
+        import logging
+        from datetime import datetime, timedelta
+        self.limite_stop = Decimal(str(limite_stop))
+        self.limite_drawdown = Decimal(str(limite_drawdown))
+        self.janela_drawdown = timedelta(minutes=janela_drawdown_min)
+        self.saldo_inicial = None
+        self.saldo_atual = None
+        self.ordens_bloqueadas = False
+        self.perdas_por_posicao = {}  # simbolo: perda acumulada
+        self.perda_total = Decimal('0')
+        self.historico_saldos = []  # (datetime, saldo)
+        self.logger = logging.getLogger("gestor_risco")
+        if not self.logger.hasHandlers():
+            handler = logging.StreamHandler()
+            formatter = logging.Formatter('[%(asctime)s] %(levelname)s: %(message)s')
+            handler.setFormatter(formatter)
+            self.logger.addHandler(handler)
+        self.logger.setLevel(logging.INFO)
+
+    def registrar_saldo(self, saldo: float):
+        from datetime import datetime
+        from decimal import Decimal
+        agora = datetime.now()
+        self.saldo_atual = Decimal(str(saldo))
+        if self.saldo_inicial is None:
+            self.saldo_inicial = self.saldo_atual
+        self.historico_saldos.append((agora, self.saldo_atual))
+        # Limpar histórico antigo
+        self.historico_saldos = [(t, s) for t, s in self.historico_saldos if t > agora - self.janela_drawdown]
+        self._atualizar_perda_total()
+
+    def registrar_trade(self, simbolo: str, pnl: float):
+        from decimal import Decimal
+        pnl = Decimal(str(pnl))
+        self.perdas_por_posicao[simbolo] = self.perdas_por_posicao.get(simbolo, Decimal('0')) + pnl
+        self._verificar_stop_loss(simbolo)
+
+    def _verificar_stop_loss(self, simbolo: str):
+        perda = self.perdas_por_posicao.get(simbolo, 0)
+        if perda < 0 and abs(perda) >= self.limite_stop * self.saldo_inicial:
+            self.ordens_bloqueadas = True
+            self.logger.warning(f"Stop-loss atingido para {simbolo}. Bloqueando novas ordens!")
+
+    def _atualizar_perda_total(self):
+        if self.saldo_inicial is None or self.saldo_atual is None:
+            return
+        self.perda_total = self.saldo_atual - self.saldo_inicial
+        if self.perda_total < 0 and abs(self.perda_total) >= self.limite_drawdown * self.saldo_inicial:
+            self.ordens_bloqueadas = True
+            self.logger.warning("Drawdown diário atingido. Bloqueando novas ordens!")
+
+    def pode_operar(self) -> bool:
+        return not self.ordens_bloqueadas
+
+    def resetar(self):
+        from decimal import Decimal
+        self.ordens_bloqueadas = False
+        self.perdas_por_posicao = {}
+        self.perda_total = Decimal('0')
+        self.saldo_inicial = self.saldo_atual
+        self.historico_saldos = []
+        self.logger.info("Gestor de risco resetado.")
+
+    def status(self) -> dict:
+        return {
+            'saldo_inicial': float(self.saldo_inicial) if self.saldo_inicial else None,
+            'saldo_atual': float(self.saldo_atual) if self.saldo_atual else None,
+            'perda_total': float(self.perda_total),
+            'ordens_bloqueadas': self.ordens_bloqueadas,
+            'perdas_por_posicao': {k: float(v) for k, v in self.perdas_por_posicao.items()}
+        }
         # Histórico de riscos
         self.historico_drawdown: List[Dict] = []
         self.historico_perdas_diarias: List[Dict] = []

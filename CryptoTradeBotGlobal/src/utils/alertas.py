@@ -1,3 +1,64 @@
+import threading
+
+# Instância global e lock para compatibilidade com testes
+_gerenciador_global = None
+_lock_alerta = threading.Lock()
+
+def get_gerenciador_alertas():
+    global _gerenciador_global
+    with _lock_alerta:
+        if _gerenciador_global is None:
+            _gerenciador_global = GerenciadorAlertas({})
+        return _gerenciador_global
+
+# Função síncrona para compatibilidade com testes legados
+def enviar_alerta(mensagem: str, tipo: str = "INFO", canais=None, urgente=False):
+    """
+    Envia alerta multi-canal (interface compatível com testes)
+    """
+    ger = get_gerenciador_alertas()
+    import asyncio
+    tipo_map = {
+        "INFO": TipoAlerta.INFO,
+        "TRADE": TipoAlerta.TRADE,
+        "RISK": TipoAlerta.RISCO,
+        "ERROR": TipoAlerta.ERROR,
+        "CRITICAL": TipoAlerta.CRITICAL,
+        "WARNING": TipoAlerta.WARNING,
+    }
+    alerta = Alerta(
+        tipo=tipo_map.get(tipo.upper(), TipoAlerta.INFO),
+        titulo=tipo,
+        mensagem=mensagem,
+        timestamp=datetime.now(),
+        urgente=urgente
+    )
+    try:
+        return asyncio.get_event_loop().run_until_complete(ger.enviar_alerta(alerta))
+    except RuntimeError:
+        # Se já houver loop rodando (ex: pytest-asyncio), executa de forma assíncrona
+        coro = ger.enviar_alerta(alerta)
+        try:
+            import nest_asyncio
+            nest_asyncio.apply()
+        except ImportError:
+            pass
+        return asyncio.get_event_loop().run_until_complete(coro)
+
+def estatisticas_alertas():
+    """Retorna estatísticas dos alertas (compatível com testes)"""
+    ger = get_gerenciador_alertas()
+    import asyncio
+    try:
+        return asyncio.get_event_loop().run_until_complete(ger.obter_estatisticas())
+    except RuntimeError:
+        coro = ger.obter_estatisticas()
+        try:
+            import nest_asyncio
+            nest_asyncio.apply()
+        except ImportError:
+            pass
+        return asyncio.get_event_loop().run_until_complete(coro)
 """
 Sistema de Alertas - CryptoTradeBotGlobal
 Sistema de Trading de Criptomoedas - Português Brasileiro

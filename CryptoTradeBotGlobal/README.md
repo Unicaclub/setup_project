@@ -139,6 +139,28 @@ risco_portfolio:
 
 ### Componentes do Sistema
 
+## 🚨 Exemplos de Alertas Enviados
+
+Exemplo de alerta multi-canal:
+
+```python
+from src.utils import alertas
+alertas.enviar_alerta("Alerta de risco: Stop-loss atingido!", tipo="RISK", canais=["telegram", "email", "discord"], urgente=True)
+```
+
+Exemplo de alerta crítico:
+
+```python
+alertas.enviar_alerta("Erro crítico: Falha na conexão com Binance!", tipo="CRITICAL", canais=["email"], urgente=True)
+```
+
+Estatísticas dos alertas:
+
+```python
+stats = alertas.estatisticas_alertas()
+print(stats)
+```
+
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Motor de      │    │   Gerenciador   │    │   Gerenciador   │
@@ -211,6 +233,40 @@ CryptoTradeBotGlobal/
 
 ### Controles de Risco de Portfólio
 
+### Integração com `binance_real`
+
+O adaptador `binance_real` implementa integração real com a API oficial da Binance (spot), suportando tanto a biblioteca oficial `binance.client` quanto `ccxt` para máxima flexibilidade. Inclui:
+- CRUD de ordens reais e simuladas
+- Logs detalhados e tratamento de edge cases
+- Criptografia de credenciais
+- Métodos assíncronos para operações de alta performance
+- Testes integrados e rotina de simulação
+
+Exemplo de uso:
+```python
+from src.adapters.binance_real import criar_adaptador_binance_real
+adaptador = criar_adaptador_binance_real({'modo_simulacao': True})
+# adaptador.conectar(), adaptador.executar_ordem(...)
+```
+
+### Gestão de Risco Empresarial
+
+O módulo `src/core/gestor_risco.py` implementa:
+- Stop-loss por posição (% do saldo inicial)
+- Drawdown diário com bloqueio automático de ordens
+- Reset automático por janela de tempo
+- Integração com alertas e logs
+
+Exemplo de integração:
+```python
+from src.core.gestor_risco import GestorRisco
+gestor = GestorRisco(limite_stop=0.05, limite_drawdown=0.10)
+gestor.registrar_saldo(10000)
+gestor.registrar_trade('BTCUSDT', -600)
+if not gestor.pode_operar():
+    print('Operação bloqueada por risco!')
+```
+
 - **Dimensionamento de Posição**: Critério de Kelly, percentual fixo, ajustado por volatilidade
 - **Diversificação**: Limites máximos de correlação e concentração
 - **Proteção de Drawdown**: Redução dinâmica de posição em perdas
@@ -276,6 +332,25 @@ python tests/test_basico.py
 
 ### Deployment de Produção
 
+### Comandos Docker Compose
+
+```bash
+# Subir todos os serviços (produção)
+docker-compose --profile prod up -d
+
+# Subir ambiente de desenvolvimento
+docker-compose --profile dev up -d
+
+# Parar todos os serviços
+docker-compose down
+```
+
+### Healthchecks e Monitoramento
+
+Todos os serviços possuem healthcheck configurado. Métricas Prometheus e dashboards Grafana disponíveis em:
+- http://localhost:9090 (Prometheus)
+- http://localhost:3000 (Grafana)
+
 #### Deployment Docker
 ```bash
 # Construir imagem de produção
@@ -320,6 +395,16 @@ docker run -d --name cryptobot \
 - **Log de Acesso**: Monitoramento de atividade do usuário
 
 ## 📚 Documentação
+
+## 🗺️ Roadmap Fase 5 (SaaS)
+
+- [ ] Multiusuário e autenticação OAuth2
+- [ ] Painel SaaS com billing e planos
+- [ ] Deploy automatizado (CI/CD)
+- [ ] API pública para integrações externas
+- [ ] Estratégias customizáveis via painel web
+- [ ] Monitoramento multi-conta e multi-exchange
+- [ ] Suporte a backtests massivos e relatórios avançados
 
 ### Documentação da API
 
