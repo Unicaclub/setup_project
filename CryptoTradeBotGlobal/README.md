@@ -1,3 +1,33 @@
+# ![](coverage.svg)
+## 🐳 Dockerfile & Execução Manual
+
+```sh
+docker build -t ctbg-api .
+docker run --rm -p 8000:8000 -p 8501:8501 ctbg-api
+```
+
+## 🖥️ Frontend Streamlit
+
+Painel interativo: `streamlit_dashboard.py` (JWT obrigatório). Use o token do login SSO.
+
+## 🔗 Exemplos curl autenticados
+
+```sh
+curl -X POST http://localhost:8000/login -d "username=admin@root.com&password=admin123"
+curl -H "Authorization: Bearer <token>" http://localhost:8000/usuarios
+curl -H "Authorization: Bearer <token>" http://localhost:8000/planos
+```
+
+## 🛣️ Roadmap Fase 6 (Now/Next/Later)
+
+**Now:**
+- Integração ML básica, backtest simples, relatórios de performance
+
+**Next:**
+- Estratégias automáticas, tuning de risco, painéis avançados
+
+**Later:**
+- Auto-otimização, marketplace de estratégias, relatórios multi-tenant, IA generativa
 # CryptoTradeBotGlobal – Fase 5 SUPREMA
 ## 🚀 Deploy Local/Dev/Prod
 ```sh

@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: cryptotradebotglobal
+        ports: [5432:5432]
+        options: >-
+          --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+      redis:
+        image: redis:7
+        ports: [6379:6379]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest coverage
+      - name: Docker Compose config (dev)
+        run: docker compose --profile dev config
+      - name: Docker Compose config (prod)
+        run: docker compose --profile prod config
+      - name: Run tests
+        run: pytest tests/test_* -v --maxfail=1 --disable-warnings
+      - name: Coverage
+        run: coverage run -m pytest && coverage report --fail-under=80
+      - name: Coverage Badge
+        uses: tj-actions/coverage-badge-py@v2
+        with:
+          output: coverage.svg
+      - name: Add badge to README
+        run: |
+          if ! grep -q 'coverage.svg' README.md; then echo '![](coverage.svg)' >> README.md; fi
+          git config --global user.email "ci@github.com"
+          git config --global user.name "github-actions"
+          git add README.md coverage.svg
+          git commit -m "ci: add coverage badge" || true
+          git push || true

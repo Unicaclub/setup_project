@@ -1,87 +1,101 @@
 """
-Dashboard Streamlit - CryptoTradeBotGlobal
-Sistema de Trading de Criptomoedas - Português Brasileiro
-"""
-
 import streamlit as st
-import plotly.graph_objects as go
-import plotly.express as px
-import pandas as pd
-import asyncio
-import json
-import time
-from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional
+import plotly.graph_objs as go
+import requests
 import os
-import sys
+import jwt
 
-# Adicionar o diretório raiz ao path
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+API_URL = os.getenv("API_URL", "http://localhost:8000")
 
-from src.core.bot_trading import BotTrading
-from src.strategies.estrategia_sma import criar_estrategia_sma
-from src.strategies.estrategia_rsi import criar_estrategia_rsi
-from src.strategies.estrategia_bollinger import criar_estrategia_bollinger
-from src.adapters.binance_real import AdaptadorBinanceReal
-from src.utils.alertas import criar_gerenciador_alertas
-from src.utils.logger import obter_logger
-from config import obter_configuracao
+st.set_page_config(page_title="CryptoTradeBotGlobal Dashboard", layout="wide")
 
-# Configuração da página
-st.set_page_config(
-    page_title="CryptoTradeBotGlobal - Dashboard",
-    page_icon="🤖",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
+# Integração SSO JWT
+jwt_token = st.session_state.get("JWT_TOKEN") or st.text_input("Cole seu JWT aqui:", type="password")
+headers = {"Authorization": f"Bearer {jwt_token}"} if jwt_token else {}
 
-# CSS personalizado
-st.markdown("""
-<style>
-    .main-header {
-        font-size: 2.5rem;
-        font-weight: bold;
-        color: #1f77b4;
-        text-align: center;
-        margin-bottom: 2rem;
-    }
-    .metric-card {
-        background-color: #f0f2f6;
-        padding: 1rem;
-        border-radius: 0.5rem;
-        border-left: 4px solid #1f77b4;
-    }
-    .status-running {
-        color: #28a745;
-        font-weight: bold;
-    }
-    .status-stopped {
-        color: #dc3545;
-        font-weight: bold;
-    }
-    .alert-success {
-        background-color: #d4edda;
-        border: 1px solid #c3e6cb;
-        color: #155724;
-        padding: 0.75rem;
-        border-radius: 0.25rem;
-        margin: 1rem 0;
-    }
-    .alert-danger {
-        background-color: #f8d7da;
-        border: 1px solid #f5c6cb;
-        color: #721c24;
-        padding: 0.75rem;
-        border-radius: 0.25rem;
-        margin: 1rem 0;
-    }
-</style>
-""", unsafe_allow_html=True)
+st.title("CryptoTradeBotGlobal – Dashboard Multi-Tenant")
 
-# Inicialização do estado da sessão
-if 'bot_instance' not in st.session_state:
-    st.session_state.bot_instance = None
-if 'bot_running' not in st.session_state:
+abas = st.tabs(["Trading", "Risco", "Logs", "Dashboard"])
+
+with abas[0]:
+    st.header("Trading")
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("Start Bot"):
+            if jwt_token:
+                r = requests.post(f"{API_URL}/bot/start", headers=headers)
+                st.write(r.json())
+            else:
+                st.warning("JWT obrigatório!")
+    with col2:
+        if st.button("Stop Bot"):
+            if jwt_token:
+                r = requests.post(f"{API_URL}/bot/stop", headers=headers)
+                st.write(r.json())
+            else:
+                st.warning("JWT obrigatório!")
+    # Gráfico de ordens
+    if jwt_token:
+        r = requests.get(f"{API_URL}/ordens", headers=headers)
+        if r.ok:
+            ordens = r.json()
+            if ordens:
+                fig = go.Figure()
+                fig.add_trace(go.Scatter(x=[o['timestamp'] for o in ordens], y=[o['preco'] for o in ordens], mode='lines+markers', name='Preço'))
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.info("Sem ordens para exibir.")
+        else:
+            st.info("Sem ordens para exibir.")
+
+with abas[1]:
+    st.header("Gestão de Risco")
+    if jwt_token:
+        r = requests.get(f"{API_URL}/risco", headers=headers)
+        if r.ok:
+            risco = r.json()
+            if risco:
+                fig = go.Figure()
+                fig.add_trace(go.Bar(x=list(risco.keys()), y=list(risco.values())))
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.info("Sem dados de risco.")
+        else:
+            st.info("Sem dados de risco.")
+    else:
+        st.warning("JWT obrigatório!")
+
+with abas[2]:
+    st.header("Logs do Sistema")
+    if jwt_token:
+        r = requests.get(f"{API_URL}/logs", headers=headers)
+        if r.ok:
+            logs = r.json()
+            if logs:
+                st.code("\n".join(logs[-100:]), language="text")
+            else:
+                st.info("Sem logs.")
+        else:
+            st.info("Sem logs.")
+    else:
+        st.warning("JWT obrigatório!")
+
+with abas[3]:
+    st.header("Dashboard de Performance")
+    if jwt_token:
+        r = requests.get(f"{API_URL}/performance", headers=headers)
+        if r.ok:
+            perf = r.json()
+            if perf and 'datas' in perf and 'pnl' in perf:
+                fig = go.Figure()
+                fig.add_trace(go.Scatter(x=perf['datas'], y=perf['pnl'], mode='lines+markers', name='PnL'))
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.info("Sem dados de performance.")
+        else:
+            st.info("Sem dados de performance.")
+    else:
+        st.warning("JWT obrigatório!")
     st.session_state.bot_running = False
 if 'dados_historicos' not in st.session_state:
     st.session_state.dados_historicos = []
