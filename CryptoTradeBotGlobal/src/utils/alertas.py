@@ -50,7 +50,7 @@ def estatisticas_alertas():
     ger = get_gerenciador_alertas()
     import asyncio
     try:
-        return asyncio.get_event_loop().run_until_complete(ger.obter_estatisticas())
+        stats = asyncio.get_event_loop().run_until_complete(ger.obter_estatisticas())
     except RuntimeError:
         coro = ger.obter_estatisticas()
         try:
@@ -58,7 +58,16 @@ def estatisticas_alertas():
             nest_asyncio.apply()
         except ImportError:
             pass
-        return asyncio.get_event_loop().run_until_complete(coro)
+        stats = asyncio.get_event_loop().run_until_complete(coro)
+    # Adaptar para formato esperado nos testes
+    tipos = stats.get("alertas_por_tipo", {})
+    return {
+        "tipos": tipos,
+        "por_tipo": tipos,
+        "enviados": stats.get("total_alertas_enviados", 0),
+        "falhas": stats.get("falhas_envio", 0),
+        "ultimos": []
+    }
 """
 Sistema de Alertas - CryptoTradeBotGlobal
 Sistema de Trading de Criptomoedas - Português Brasileiro

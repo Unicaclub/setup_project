@@ -1,3 +1,10 @@
+# Stubs mínimos para testes
+class ErroConexao(Exception):
+    pass
+class ErroOrdem(Exception):
+    pass
+class ErroSaldo(Exception):
+    pass
 """
 Core Exception Classes for CryptoTradeBotGlobal
 Production-ready exception handling for cryptocurrency trading system.

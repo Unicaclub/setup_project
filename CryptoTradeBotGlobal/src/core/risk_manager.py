@@ -1,3 +1,13 @@
+from typing import Any
+# Alias funcional para compatibilidade com testes
+class GerenciadorRisco:
+    def __new__(cls, *args, **kwargs):
+        # Importação tardia para evitar recursão
+        # Instancia RiskManager real
+        from src.core.risk_manager import RiskManager
+        instance = object.__new__(RiskManager)
+        instance.__init__(*args, **kwargs)
+        return instance
 """
 Risk Management System for CryptoTradeBotGlobal
 Production-ready risk management with comprehensive financial safety controls.

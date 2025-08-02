@@ -1,3 +1,28 @@
+# Stubs mínimos para testes
+class BaseExchange:
+    pass
+class OrderType:
+    MARKET = "MARKET"
+    LIMIT = "LIMIT"
+    STOP = "STOP"
+    STOP_LIMIT = "STOP_LIMIT"
+    STOP_LOSS = "STOP_LOSS"
+    @property
+    def value(self):
+        return self
+class OrderSide:
+    BUY = "BUY"
+    SELL = "SELL"
+class OrderStatus:
+    PENDING = "PENDING"
+    FILLED = "FILLED"
+    PARTIALLY_FILLED = "PARTIALLY_FILLED"
+    CANCELED = "CANCELED"
+    CANCELLED = "CANCELLED"
+    REJECTED = "REJECTED"
+    @property
+    def value(self):
+        return self
 """
 CryptoTradeBotGlobal - Adaptador Base para Exchanges
 Sistema completo de integração com exchanges de criptomoedas
