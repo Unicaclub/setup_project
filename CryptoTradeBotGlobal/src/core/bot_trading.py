@@ -28,7 +28,7 @@ class GerenciadorRiscoSimplificado:
         self.logger = obter_logger(__name__)
         
         # Estado do portfólio
-        self.valor_inicial = configuracoes.trading.valor_inicial_portfolio
+        self.valor_inicial = Decimal(str(configuracoes.trading.valor_inicial_portfolio))
         self.valor_atual = self.valor_inicial
         self.posicoes_abertas = {}
         self.historico_trades = []
@@ -62,7 +62,7 @@ class GerenciadorRiscoSimplificado:
             valor_ordem = quantidade * preco
             
             # Verificar tamanho máximo da posição
-            tamanho_max_posicao = (self.valor_atual * self.config.tamanho_maximo_posicao_pct) / 100
+            tamanho_max_posicao = (self.valor_atual * Decimal(str(self.config.tamanho_maximo_posicao_pct))) / Decimal('100')
             if valor_ordem > tamanho_max_posicao:
                 # Ajustar quantidade
                 quantidade_ajustada = tamanho_max_posicao / preco
@@ -74,7 +74,7 @@ class GerenciadorRiscoSimplificado:
                 return False, "Muitas perdas consecutivas - período de cooling off", quantidade
             
             # Verificar perda diária
-            if self.perda_diaria >= (self.valor_inicial * self.config.perda_maxima_diaria_pct / 100):
+            if self.perda_diaria >= (self.valor_inicial * Decimal(str(self.config.perda_maxima_diaria_pct)) / Decimal('100')):
                 return False, "Limite de perda diária atingido", quantidade
             
             # Verificar drawdown máximo
@@ -98,12 +98,14 @@ class GerenciadorRiscoSimplificado:
         Returns:
             (stop_loss, take_profit)
         """
+        stop_loss_pct = Decimal(str(self.config.stop_loss_pct))
+        take_profit_pct = Decimal(str(self.config.take_profit_pct))
         if lado.upper() == 'BUY':
-            stop_loss = preco_entrada * (1 - self.config.stop_loss_pct / 100)
-            take_profit = preco_entrada * (1 + self.config.take_profit_pct / 100)
+            stop_loss = preco_entrada * (Decimal('1') - (stop_loss_pct / Decimal('100')))
+            take_profit = preco_entrada * (Decimal('1') + (take_profit_pct / Decimal('100')))
         else:  # SELL
-            stop_loss = preco_entrada * (1 + self.config.stop_loss_pct / 100)
-            take_profit = preco_entrada * (1 - self.config.take_profit_pct / 100)
+            stop_loss = preco_entrada * (Decimal('1') + (stop_loss_pct / Decimal('100')))
+            take_profit = preco_entrada * (Decimal('1') - (take_profit_pct / Decimal('100')))
         
         return stop_loss, take_profit
     
@@ -315,12 +317,14 @@ class BotTrading:
         
         # Se não há configurações, usar configurações básicas para teste
         if configuracoes is None:
-            self.config = self._criar_configuracoes_basicas()
+            self.configuracao = self._criar_configuracoes_basicas()
         else:
-            self.config = configuracoes
+            self.configuracao = configuracoes
+        # Compatibilidade: garantir atributo 'config' para testes e código legado
+        self.config = self.configuracao
         
         # Componentes principais
-        self.gerenciador_risco = GerenciadorRiscoSimplificado(self.config)
+        self.gerenciador_risco = GerenciadorRiscoSimplificado(self.configuracao)
         self.exchanges: Dict[str, AdaptadorExchangeSimulado] = {}
         
         # Estado do bot
@@ -397,7 +401,7 @@ class BotTrading:
         with GerenciadorContextoLog(self.logger, "Conectando aos exchanges"):
             exchanges_conectados = 0
             
-            for nome, config_exchange in self.config.listar_exchanges_ativos().items():
+            for nome, config_exchange in self.configuracao.listar_exchanges_ativos().items():
                 try:
                     # Criar adaptador (simulado por enquanto)
                     adaptador = AdaptadorExchangeSimulado(nome, config_exchange)
@@ -424,10 +428,10 @@ class BotTrading:
         """Inicializa o sistema de gerenciamento de risco"""
         with GerenciadorContextoLog(self.logger, "Inicializando gerenciamento de risco"):
             # Configurar limites iniciais
-            self.logger.info(f"🛡️ Tamanho máximo posição: {self.config.risco.tamanho_maximo_posicao_pct}%")
-            self.logger.info(f"🛡️ Stop Loss: {self.config.risco.stop_loss_pct}%")
-            self.logger.info(f"🛡️ Take Profit: {self.config.risco.take_profit_pct}%")
-            self.logger.info(f"🛡️ Perda máxima diária: {self.config.risco.perda_maxima_diaria_pct}%")
+            self.logger.info(f"🛡️ Tamanho máximo posição: {self.configuracao.risco.tamanho_maximo_posicao_pct}%")
+            self.logger.info(f"🛡️ Stop Loss: {self.configuracao.risco.stop_loss_pct}%")
+            self.logger.info(f"🛡️ Take Profit: {self.configuracao.risco.take_profit_pct}%")
+            self.logger.info(f"🛡️ Perda máxima diária: {self.configuracao.risco.perda_maxima_diaria_pct}%")
     
     @log_performance
     async def executar_ciclo_trading(self):
@@ -471,7 +475,7 @@ class BotTrading:
         """Obtém dados de mercado de todos os pares configurados"""
         dados_mercado = {}
         
-        for par in self.config.trading.pares_moedas:
+        for par in self.configuracao.trading.pares_moedas:
             for nome_exchange, exchange in self.exchanges.items():
                 try:
                     ticker = await exchange.obter_ticker(par)
@@ -584,7 +588,7 @@ class BotTrading:
                             # Tentar obter preço da moeda
                             try:
                                 par = f"{moeda}/USDT"
-                                if par in self.config.trading.pares_moedas:
+                                if par in self.configuracao.trading.pares_moedas:
                                     ticker = await exchange.obter_ticker(par)
                                     valor_total += quantidade * ticker['preco']
                             except:

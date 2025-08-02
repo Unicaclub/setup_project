@@ -62,6 +62,7 @@ class EstrategiaBollinger(BaseStrategy):
         self.bandas_historicas = {simbolo: deque(maxlen=100) for simbolo in self.simbolos}
         
         # Estado da estratégia
+        self.ativa = True  # Garante que a estratégia está ativa após inicialização
         self.sinais_anteriores = {simbolo: 'NEUTRO' for simbolo in self.simbolos}
         self.posicao_banda = {simbolo: 'MEIO' for simbolo in self.simbolos}  # SUPERIOR, INFERIOR, MEIO
         self.ultima_analise = None
@@ -315,23 +316,28 @@ class EstrategiaBollinger(BaseStrategy):
             confianca = 0.0
             
             # Sinal de compra: preço toca banda inferior
-            if (posicao_atual == 'INFERIOR' and posicao_anterior != 'INFERIOR' and 
-                sinal_anterior != 'COMPRAR'):
-                
+            if (posicao_atual == 'INFERIOR' and (posicao_anterior != 'INFERIOR' or sinal_anterior != 'COMPRAR')):
                 self.toques_banda_inferior += 1
                 acao = 'COMPRAR'
                 motivo = f"Preço tocou banda inferior: ${preco:.2f} <= ${bandas['banda_inferior']:.2f}"
                 confianca = self._calcular_confianca_reversao_compra(preco, bandas, volume)
-                
+            # Permitir sinal na primeira análise (quando posicao_anterior == 'MEIO' e sinal_anterior == 'NEUTRO')
+            elif (posicao_atual == 'INFERIOR' and posicao_anterior == 'MEIO' and sinal_anterior == 'NEUTRO'):
+                self.toques_banda_inferior += 1
+                acao = 'COMPRAR'
+                motivo = f"Primeira análise: preço tocou banda inferior: ${preco:.2f} <= ${bandas['banda_inferior']:.2f}"
+                confianca = self._calcular_confianca_reversao_compra(preco, bandas, volume)
             # Sinal de venda: preço toca banda superior
-            elif (posicao_atual == 'SUPERIOR' and posicao_anterior != 'SUPERIOR' and 
-                  sinal_anterior != 'VENDER'):
-                
+            elif (posicao_atual == 'SUPERIOR' and (posicao_anterior != 'SUPERIOR' or sinal_anterior != 'VENDER')):
                 self.toques_banda_superior += 1
                 acao = 'VENDER'
                 motivo = f"Preço tocou banda superior: ${preco:.2f} >= ${bandas['banda_superior']:.2f}"
                 confianca = self._calcular_confianca_reversao_venda(preco, bandas, volume)
-            
+            elif (posicao_atual == 'SUPERIOR' and posicao_anterior == 'MEIO' and sinal_anterior == 'NEUTRO'):
+                self.toques_banda_superior += 1
+                acao = 'VENDER'
+                motivo = f"Primeira análise: preço tocou banda superior: ${preco:.2f} >= ${bandas['banda_superior']:.2f}"
+                confianca = self._calcular_confianca_reversao_venda(preco, bandas, volume)
             return acao, motivo, confianca
             
         except Exception as e:

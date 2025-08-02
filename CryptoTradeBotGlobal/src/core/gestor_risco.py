@@ -1,4 +1,82 @@
 
+from decimal import Decimal
+
+# --- RESTAURAÇÃO DA CLASSE GESTORRISCO PARA IMPORTAÇÃO E TESTES ---
+class GestorRisco:
+    """
+    Classe que gerencia risco para ordens: limites de stop-loss e drawdown diário.
+    """
+    def __init__(self, limite_stop=Decimal('0.05'), limite_drawdown=Decimal('0.10')):
+        self.limite_stop = Decimal(limite_stop)
+        self.limite_drawdown = Decimal(limite_drawdown)
+        self.saldo_inicial = None
+        self.saldo_atual = Decimal('0')
+        self.saldo_max_historico = Decimal('0')
+        self.perda_total = Decimal('0')
+        self.ordens_bloqueadas = False
+        self._bloqueado = False
+        self.perdas_por_posicao = {}
+        
+    def registrar_saldo(self, valor):
+        valor = Decimal(valor)
+        if self.saldo_inicial is None:
+            self.saldo_inicial = valor
+        if valor > self.saldo_max_historico:
+            self.saldo_max_historico = valor
+        self.saldo_atual = valor
+        self._atualizar_perda_total()
+        
+        # Verificar drawdown
+        if self.saldo_max_historico > 0:
+            drawdown = 1 - (valor / self.saldo_max_historico)
+            if drawdown >= self.limite_drawdown:
+                self._bloqueado = True
+                
+    def registrar_trade(self, simbolo, resultado):
+        """Registra resultado de um trade"""
+        resultado = Decimal(resultado)
+        self.perdas_por_posicao[simbolo] = self.perdas_por_posicao.get(simbolo, Decimal('0')) + resultado
+        self.perda_total += resultado
+        
+        # Verificar stop-loss baseado na perda total
+        if self.saldo_inicial and self.perda_total < 0:
+            perda_relativa = abs(self.perda_total) / self.saldo_inicial
+            if perda_relativa >= self.limite_stop:
+                self.ordens_bloqueadas = True
+                
+    def _atualizar_perda_total(self):
+        if self.saldo_inicial is None:
+            return
+        self.perda_total = self.saldo_atual - self.saldo_inicial
+        
+        # Verificar stop-loss baseado no saldo atual
+        if self.perda_total < 0:
+            perda_relativa = abs(self.perda_total) / self.saldo_inicial
+            if perda_relativa >= self.limite_stop:
+                self.ordens_bloqueadas = True
+                
+    def pode_operar(self):
+        return not self._bloqueado and not self.ordens_bloqueadas
+        
+    def resetar(self):
+        self._bloqueado = False
+        self.ordens_bloqueadas = False
+        self.perdas_por_posicao = {}
+        self.perda_total = Decimal('0')
+        if self.saldo_atual > 0:
+            self.saldo_max_historico = self.saldo_atual
+            
+    def status(self):
+        return {
+            'saldo_inicial': float(self.saldo_inicial) if self.saldo_inicial else None,
+            'saldo_atual': float(self.saldo_atual),
+            'saldo_max_historico': float(self.saldo_max_historico),
+            'perda_total': float(self.perda_total),
+            'ordens_bloqueadas': self.ordens_bloqueadas,
+            'bloqueado': self._bloqueado,
+            'perdas_por_posicao': {k: float(v) for k, v in self.perdas_por_posicao.items()}
+        }
+
 """
 Gestor de Risco - CryptoTradeBotGlobal
 Sistema de Trading de Criptomoedas - Português Brasileiro
@@ -41,95 +119,102 @@ class TipoRisco(Enum):
 # Enum de status de risco com nomes em maiúsculo para compatibilidade
 
 class StatusRisco(Enum):
-    pass
+    NORMAL = "normal"
+    ALTO = "alto"
+    CRITICO = "critico"
 
-class GestorRisco:
-    """
-    Classe de gestão de risco: stop-loss, drawdown diário, bloqueio de ordens
-    """
 
-    def __init__(self, *, limite_stop: float = 0.05, limite_drawdown: float = 0.10, janela_drawdown_min: int = 1440, parametros: Any = None):
-        from decimal import Decimal
-        import logging
-        from datetime import datetime, timedelta
-        self.limite_stop = Decimal(str(limite_stop))
-        self.limite_drawdown = Decimal(str(limite_drawdown))
-        self.janela_drawdown = timedelta(minutes=janela_drawdown_min)
+class GestorRiscoCompleto:
+    """
+    Classe completa de gestão de risco para o sistema de trading
+    """
+    
+    def __init__(self, config: Dict[str, Any] = None):
+        """
+        Inicializa o gestor de risco completo
+        
+        Args:
+            config: Configuração do gestor de risco
+        """
+        self.logger = obter_logger(__name__)
+        
+        # Configurações padrão
+        if config is None:
+            config = {}
+            
+        # Parâmetros de risco
+        self.limite_stop = Decimal(str(config.get('limite_stop', '0.05')))
+        self.limite_drawdown = Decimal(str(config.get('limite_drawdown', '0.10')))
+        
+        # Estado atual
         self.saldo_inicial = None
-        self.saldo_atual = None
-        self.ordens_bloqueadas = False
-        self.perdas_por_posicao = {}  # simbolo: perda acumulada
+        self.saldo_atual = Decimal('0')
+        self.saldo_max_historico = Decimal('0')
         self.perda_total = Decimal('0')
-        self.historico_saldos = []  # (datetime, saldo)
-        self.logger = logging.getLogger("gestor_risco")
-        if not self.logger.hasHandlers():
-            handler = logging.StreamHandler()
-            formatter = logging.Formatter('[%(asctime)s] %(levelname)s: %(message)s')
-            handler.setFormatter(formatter)
-            self.logger.addHandler(handler)
-        self.logger.setLevel(logging.INFO)
-        # Inicialização dos atributos usados nos métodos assíncronos
+        self.ordens_bloqueadas = False
+        self._bloqueado = False
+        
+        # Sistema de trading
         self.sistema_ativo = True
         self.modo_emergencia = False
-        self.portfolio_atual = Decimal('0.0')
-        self.portfolio_inicial = Decimal('0.0')
-        self.pico_portfolio = Decimal('0.0')
-        self.data_atual = datetime.now().date()
+        
+        # Portfolio
+        self.portfolio_atual = Decimal(str(config.get('portfolio_inicial', '10000')))
+        self.portfolio_inicial = self.portfolio_atual
+        self.pico_portfolio = self.portfolio_atual
+        
+        # Perdas e riscos
         self.perda_diaria_atual = Decimal('0.0')
+        self.data_atual = datetime.now().date()
+        
+        # Posições e trades
         self.posicoes_ativas = {}
+        self.perdas_por_posicao = {}
+        
+        # Estatísticas
+        self.total_alertas_risco = 0
+        self.paradas_emergencia = 0
+        self.trades_rejeitados = 0
+        self.alertas_enviados = []
+        
+        # Histórico
+        self.historico_saldos = []
         self.historico_drawdown = []
+        self.historico_perdas_diarias = []
+        
+        # Parâmetros avançados
+        class ParametrosRisco:
+            def __init__(self):
+                self.drawdown_maximo = Decimal('0.20')
+                self.drawdown_alerta = Decimal('0.15')
+                self.perda_diaria_maxima = Decimal('1000')
+                self.perda_diaria_alerta = Decimal('750')
+                self.posicao_maxima_usd = Decimal('5000')
+                self.posicao_maxima_percentual = Decimal('0.30')
+                self.max_posicoes_simultaneas = 5
+                self.stop_loss_padrao = Decimal('0.05')
+                self.take_profit_padrao = Decimal('0.10')
+        
+        self.parametros = ParametrosRisco()
+        
+        # Alertas manager
+        self.alertas_manager = None
+        try:
+            self.alertas_manager = criar_gerenciador_alertas()
+        except Exception as e:
+            self.logger.warning(f"Alertas manager não disponível: {e}")
 
-    def registrar_trade(self, simbolo: str, resultado: float):
-        """
-        Registra o resultado de um trade (ganho ou perda) para o símbolo informado.
-        Atualiza o saldo atual e verifica bloqueio de ordens por drawdown.
-        Args:
-            simbolo: símbolo do ativo negociado
-            resultado: valor do resultado do trade (positivo ou negativo)
-        """
-        from decimal import Decimal
-        if simbolo not in self.perdas_por_posicao:
-            self.perdas_por_posicao[simbolo] = Decimal('0')
-        self.perdas_por_posicao[simbolo] += Decimal(str(resultado))
-        if self.saldo_atual is not None:
-            self.saldo_atual += Decimal(str(resultado))
-        self._atualizar_perda_total()
-        self.logger.info(f"Trade registrado: {simbolo} resultado={resultado}")
-
-    def registrar_saldo(self, valor: Decimal):
-        """
-        Atualiza o saldo disponível, calcula drawdown e bloqueia ordens se necessário.
-        Args:
-            valor: valor do saldo a ser registrado (Decimal ou float)
-        """
-        from decimal import Decimal
-        from datetime import datetime
+    def registrar_saldo(self, valor):
+        """Registra saldo atual e verifica drawdown"""
         valor = Decimal(str(valor))
         if self.saldo_inicial is None:
             self.saldo_inicial = valor
-            self.pico_portfolio = valor
+        
+        if valor > self.saldo_max_historico:
+            self.saldo_max_historico = valor
+            
         self.saldo_atual = valor
-        self.portfolio_atual = valor
-        self.historico_saldos.append((datetime.now(), valor))
-        if valor > self.pico_portfolio:
-            self.pico_portfolio = valor
-        # Calcular drawdown
-        if self.pico_portfolio > 0:
-            drawdown = (self.pico_portfolio - valor) / self.pico_portfolio
-        else:
-            drawdown = Decimal('0')
-        # Verificar bloqueio por drawdown
-        if drawdown >= self.limite_drawdown:
-            self.ordens_bloqueadas = True
-            self.logger.warning(f"Drawdown atingido: {drawdown:.2%} >= limite {self.limite_drawdown:.2%}. Bloqueando ordens.")
-        # Verificar bloqueio por stop-loss individual
-        for simbolo, perda in self.perdas_por_posicao.items():
-            if self.saldo_inicial > 0 and abs(perda) / self.saldo_inicial >= self.limite_stop:
-                self.ordens_bloqueadas = True
-                self.logger.warning(f"Stop-loss atingido para {simbolo}: {perda} >= limite {self.limite_stop * self.saldo_inicial}. Bloqueando ordens.")
-        self.logger.info(f"Saldo registrado: {valor}")
-
-
+        self._atualizar_perda_total()
 
     def _atualizar_perda_total(self):
         if self.saldo_inicial is None or self.saldo_atual is None:
@@ -147,7 +232,7 @@ class GestorRisco:
 
     def pode_operar(self) -> bool:
         """
-        Retorna False se ordens estão bloqueadas por drawdown ou stop-loss.
+        Retorna False se ordens estão bloqueadas por drawdown dinâmico ou stop-loss.
         """
         return not self.ordens_bloqueadas
 
@@ -715,7 +800,12 @@ class GestorRisco:
             self.logger.error(f"❌ Erro ao ajustar parâmetros: {str(e)}")
 
 
-def criar_gestor_risco(config: Dict[str, Any] = None) -> GestorRisco:
+
+
+
+
+
+def criar_gestor_risco(config: Dict[str, Any] = None) -> 'GestorRisco':
     """
     Cria instância do gestor de risco
     
@@ -725,11 +815,10 @@ def criar_gestor_risco(config: Dict[str, Any] = None) -> GestorRisco:
     Returns:
         Instância do gestor de risco
     """
-
     if config is None:
         config = {}
+    return GestorRisco(**config)
 
 
-
-# Alias para compatibilidade com testes e código legado
+# Alias para compatibilidade com código existente
 GerenciadorRisco = GestorRisco

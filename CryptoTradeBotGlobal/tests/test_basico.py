@@ -163,8 +163,8 @@ class TestGerenciadorRisco:
         perda_pct = ((preco_entrada - stop_loss) / preco_entrada) * 100
         ganho_pct = ((take_profit - preco_entrada) / preco_entrada) * 100
         
-        assert abs(perda_pct - 2.0) < 0.1  # Aproximadamente 2%
-        assert abs(ganho_pct - 6.0) < 0.1  # Aproximadamente 6%
+        assert abs(perda_pct - Decimal('2.0')) < Decimal('0.1')  # Aproximadamente 2%
+        assert abs(ganho_pct - Decimal('6.0')) < Decimal('0.1')  # Aproximadamente 6%
     
     @pytest.mark.asyncio
     async def test_atualizar_posicao(self, gerenciador_risco):

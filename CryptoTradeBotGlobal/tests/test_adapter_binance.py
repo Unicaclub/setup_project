@@ -41,7 +41,7 @@ class TestAdaptadorBinance:
         """Testa inicialização básica do adaptador"""
         assert adaptador.nome == 'Binance'
         assert adaptador.modo_simulacao is True
-        assert adaptador.saldo_inicial == 10000
+        assert adaptador.saldo_inicial == Decimal('10000')
         assert adaptador.conectado is False
         assert len(adaptador.saldos) > 0
         assert 'USDT' in adaptador.saldos
@@ -84,9 +84,9 @@ class TestAdaptadorBinance:
         
         assert isinstance(saldos, dict)
         assert 'USDT' in saldos
-        assert saldos['USDT'] == 10000
+        assert saldos['USDT'] == Decimal('10000')
         assert 'BTC' in saldos
-        assert saldos['BTC'] == 0
+        assert saldos['BTC'] == Decimal('0')
     
     @pytest.mark.asyncio
     async def test_obter_preco_simulacao(self, adaptador):
@@ -95,7 +95,7 @@ class TestAdaptadorBinance:
         
         preco = await adaptador.obter_preco('BTC/USDT')
         
-        assert isinstance(preco, (int, float, Decimal))
+        assert isinstance(preco, Decimal)
         assert preco > 0
         # Preço simulado deve estar em uma faixa realista
         assert 20000 <= float(preco) <= 100000
@@ -105,7 +105,7 @@ class TestAdaptadorBinance:
         """Testa obtenção de preço com símbolo inválido"""
         await adaptador.conectar()
         
-        with pytest.raises(ValueError, match="Símbolo inválido"):
+        with pytest.raises(ValueError, match="Símbolo 'INVALID/PAIR' inválido ou não suportado."):
             await adaptador.obter_preco('INVALID/PAIR')
     
     @pytest.mark.asyncio
@@ -114,13 +114,13 @@ class TestAdaptadorBinance:
         await adaptador.conectar()
         
         # Ordem de compra de 0.1 BTC
-        ordem = await adaptador.simular_ordem('BTC/USDT', 'BUY', 0.1, 50000)
+        ordem = await adaptador.simular_ordem('BTC/USDT', 'BUY', Decimal('0.1'), Decimal('50000'))
         
         assert ordem is not None
         assert ordem['simbolo'] == 'BTC/USDT'
         assert ordem['lado'] == 'BUY'
-        assert ordem['quantidade'] == 0.1
-        assert ordem['preco'] == 50000
+        assert ordem['quantidade'] == Decimal('0.1')
+        assert ordem['preco'] == Decimal('50000')
         assert ordem['status'] == 'EXECUTADA'
         assert 'id' in ordem
         assert 'timestamp' in ordem
@@ -131,16 +131,16 @@ class TestAdaptadorBinance:
         await adaptador.conectar()
         
         # Primeiro, simular compra para ter BTC
-        await adaptador.simular_ordem('BTC/USDT', 'BUY', 0.1, 50000)
+        await adaptador.simular_ordem('BTC/USDT', 'BUY', Decimal('0.1'), Decimal('50000'))
         
         # Agora vender parte do BTC
-        ordem = await adaptador.simular_ordem('BTC/USDT', 'SELL', 0.05, 51000)
+        ordem = await adaptador.simular_ordem('BTC/USDT', 'SELL', Decimal('0.05'), Decimal('51000'))
         
         assert ordem is not None
         assert ordem['simbolo'] == 'BTC/USDT'
         assert ordem['lado'] == 'SELL'
-        assert ordem['quantidade'] == 0.05
-        assert ordem['preco'] == 51000
+        assert ordem['quantidade'] == Decimal('0.05')
+        assert ordem['preco'] == Decimal('51000')
         assert ordem['status'] == 'EXECUTADA'
     
     @pytest.mark.asyncio
@@ -150,7 +150,7 @@ class TestAdaptadorBinance:
         
         # Tentar comprar mais BTC do que o saldo permite
         with pytest.raises(ErroSaldo, match="Saldo insuficiente"):
-            await adaptador.simular_ordem('BTC/USDT', 'BUY', 1.0, 50000)  # 50k USDT necessários
+            await adaptador.simular_ordem('BTC/USDT', 'BUY', Decimal('1.0'), Decimal('50000'))  # 50k USDT necessários
     
     @pytest.mark.asyncio
     async def test_simular_ordem_saldo_insuficiente_venda(self, adaptador):
@@ -159,7 +159,7 @@ class TestAdaptadorBinance:
         
         # Tentar vender BTC sem ter saldo
         with pytest.raises(ErroSaldo, match="Saldo insuficiente"):
-            await adaptador.simular_ordem('BTC/USDT', 'SELL', 0.1, 50000)
+            await adaptador.simular_ordem('BTC/USDT', 'SELL', Decimal('0.1'), Decimal('50000'))
     
     @pytest.mark.asyncio
     async def test_simular_ordem_parametros_invalidos(self, adaptador):
@@ -167,16 +167,16 @@ class TestAdaptadorBinance:
         await adaptador.conectar()
         
         # Quantidade negativa
-        with pytest.raises(ValueError, match="Quantidade deve ser positiva"):
-            await adaptador.simular_ordem('BTC/USDT', 'BUY', -0.1, 50000)
+        with pytest.raises(ValueError, match="Quantidade da ordem deve ser positiva."):
+            await adaptador.simular_ordem('BTC/USDT', 'BUY', Decimal('-0.1'), Decimal('50000'))
         
         # Preço negativo
-        with pytest.raises(ValueError, match="Preço deve ser positivo"):
-            await adaptador.simular_ordem('BTC/USDT', 'BUY', 0.1, -50000)
+        with pytest.raises(ValueError, match="Preço da ordem deve ser positivo."):
+            await adaptador.simular_ordem('BTC/USDT', 'BUY', Decimal('0.1'), Decimal('-50000'))
         
         # Lado inválido
-        with pytest.raises(ValueError, match="Lado deve ser BUY ou SELL"):
-            await adaptador.simular_ordem('BTC/USDT', 'INVALID', 0.1, 50000)
+        with pytest.raises(ValueError, match="Lado da ordem deve ser 'BUY' ou 'SELL'."):
+            await adaptador.simular_ordem('BTC/USDT', 'INVALID', Decimal('0.1'), Decimal('50000'))
     
     @pytest.mark.asyncio
     async def test_atualizacao_saldos_apos_ordens(self, adaptador):
@@ -189,20 +189,21 @@ class TestAdaptadorBinance:
         btc_inicial = saldos_iniciais['BTC']
         
         # Executar ordem de compra
-        preco = 50000
-        quantidade = 0.1
+        from decimal import Decimal
+        preco = Decimal('50000')
+        quantidade = Decimal('0.1')
         await adaptador.simular_ordem('BTC/USDT', 'BUY', quantidade, preco)
-        
+
         # Verificar saldos após compra
         saldos_pos_compra = await adaptador.obter_saldo()
-        
+
         # USDT deve diminuir
         assert saldos_pos_compra['USDT'] < usdt_inicial
-        assert abs(saldos_pos_compra['USDT'] - (usdt_inicial - preco * quantidade)) < 0.01
-        
+        assert abs(saldos_pos_compra['USDT'] - (usdt_inicial - preco * quantidade)) < Decimal('0.01')
+
         # BTC deve aumentar
         assert saldos_pos_compra['BTC'] > btc_inicial
-        assert abs(saldos_pos_compra['BTC'] - (btc_inicial + quantidade)) < 0.000001
+        assert abs(saldos_pos_compra['BTC'] - (btc_inicial + quantidade)) < Decimal('0.000001')
     
     @pytest.mark.asyncio
     async def test_obter_estatisticas_iniciais(self, adaptador):
@@ -231,8 +232,8 @@ class TestAdaptadorBinance:
         await adaptador.conectar()
         
         # Executar algumas ordens
-        await adaptador.simular_ordem('BTC/USDT', 'BUY', 0.1, 50000)
-        await adaptador.simular_ordem('BTC/USDT', 'SELL', 0.05, 51000)
+        await adaptador.simular_ordem('BTC/USDT', 'BUY', Decimal('0.1'), Decimal('50000'))
+        await adaptador.simular_ordem('BTC/USDT', 'SELL', Decimal('0.05'), Decimal('51000'))
         
         stats = await adaptador.obter_estatisticas()
         
@@ -250,7 +251,7 @@ class TestAdaptadorBinance:
             await adaptador.obter_preco('BTC/USDT')
         
         with pytest.raises(ErroConexao, match="Adaptador não está conectado"):
-            await adaptador.simular_ordem('BTC/USDT', 'BUY', 0.1, 50000)
+            await adaptador.simular_ordem('BTC/USDT', 'BUY', Decimal('0.1'), Decimal('50000'))
         
         with pytest.raises(ErroConexao, match="Adaptador não está conectado"):
             await adaptador.obter_saldo()
@@ -264,7 +265,7 @@ class TestAdaptadorBinance:
         
         # Executar várias ordens de compra pequenas
         for i in range(5):
-            ordem = await adaptador.simular_ordem('BTC/USDT', 'BUY', 0.01, 50000 + i * 100)
+            ordem = await adaptador.simular_ordem('BTC/USDT', 'BUY', Decimal('0.01'), Decimal('50000') + i * 100)
             ordens.append(ordem)
         
         # Verificar que todas foram executadas
@@ -297,26 +298,27 @@ class TestAdaptadorBinance:
         
         # 1. Verificar saldo inicial
         saldos_iniciais = await adaptador.obter_saldo()
-        assert saldos_iniciais['USDT'] == 10000
-        assert saldos_iniciais['BTC'] == 0
+        from decimal import Decimal
+        assert saldos_iniciais['USDT'] == Decimal('10000')
+        assert saldos_iniciais['BTC'] == Decimal('0')
         
         # 2. Comprar BTC
-        ordem_compra = await adaptador.simular_ordem('BTC/USDT', 'BUY', 0.2, 50000)
+        ordem_compra = await adaptador.simular_ordem('BTC/USDT', 'BUY', Decimal('0.2'), Decimal('50000'))
         assert ordem_compra['status'] == 'EXECUTADA'
         
         # 3. Verificar saldos após compra
         saldos_pos_compra = await adaptador.obter_saldo()
-        assert saldos_pos_compra['BTC'] == 0.2
-        assert saldos_pos_compra['USDT'] == 0  # 10000 - (0.2 * 50000) = 0
+        assert saldos_pos_compra['BTC'] == Decimal('0.2')
+        assert saldos_pos_compra['USDT'] == Decimal('0')  # 10000 - (0.2 * 50000) = 0
         
         # 4. Vender parte do BTC com lucro
-        ordem_venda = await adaptador.simular_ordem('BTC/USDT', 'SELL', 0.1, 52000)
+        ordem_venda = await adaptador.simular_ordem('BTC/USDT', 'SELL', Decimal('0.1'), Decimal('52000'))
         assert ordem_venda['status'] == 'EXECUTADA'
         
         # 5. Verificar saldos finais
         saldos_finais = await adaptador.obter_saldo()
-        assert saldos_finais['BTC'] == 0.1  # 0.2 - 0.1
-        assert saldos_finais['USDT'] == 5200  # 0.1 * 52000
+        assert saldos_finais['BTC'] == Decimal('0.1')  # 0.2 - 0.1
+        assert saldos_finais['USDT'] == Decimal('5200')  # 0.1 * 52000
         
         # 6. Verificar estatísticas finais
         stats = await adaptador.obter_estatisticas()
@@ -326,7 +328,7 @@ class TestAdaptadorBinance:
         
         # 7. Calcular P&L esperado
         valor_portfolio = saldos_finais['USDT'] + (saldos_finais['BTC'] * 52000)
-        pnl_esperado = valor_portfolio - 10000
+        pnl_esperado = float(valor_portfolio - 10000)
         assert abs(stats['pnl'] - pnl_esperado) < 0.01
 
 
