@@ -1,0 +1,7 @@
+{
+  "database": "mysql",
+  "user": "root",
+  "password": "SENHA_AQUI",
+  "host": "localhost",
+  "port": 3306
+}
