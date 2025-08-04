@@ -1,0 +1,9 @@
+{
+  "volume_diario": 10000,
+  "volume_semanal": 50000,
+  "transacoes_rapidas": 5,
+  "score_baixo": 3,
+  "score_medio": 6,
+  "score_alto": 9,
+  "score_critico": 12
+}

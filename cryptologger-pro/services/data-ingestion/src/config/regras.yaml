@@ -1,0 +1,25 @@
+# Regras de compliance e detecção de anomalias
+anomalias:
+  padroes_transacao: true
+  alertas_volume: true
+  checagem_velocidade: true
+  risco_geografico: true
+  comportamento_carteira: true
+aml:
+  structuring: true
+  layering: true
+  smurfing: true
+kyc:
+  ativo: true
+ofac:
+  ativo: true
+regionais:
+  US: true
+  EU: true
+  ASIA: true
+pontuacao_risco:
+  thresholds:
+    baixo: 3
+    medio: 6
+    alto: 9
+    critico: 12
